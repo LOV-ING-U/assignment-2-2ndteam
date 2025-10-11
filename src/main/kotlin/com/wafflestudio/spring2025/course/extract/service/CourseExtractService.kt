@@ -28,16 +28,16 @@ class CourseExtractService(
             val headerRow = sheet.getRow(2)
             val headerColNameAndIdxMap = headerRow.associate{ it.toString() to it.columnIndex }
 
+            val get: (Row, String) -> String = { row, key ->
+                val idx = headerColNameAndIdxMap.entries.firstOrNull { it.key.contains(key) }?.value
+                row.getCell(idx!!)?.toString()!!
+            }
+
             // defensive programming
             keys.forEach { key ->
                 require(headerColNameAndIdxMap.keys.any { key in it }) {
                     "there is no '$key' column in excel sheet.\n"
                 }
-            }
-
-            val get: (Row, String) -> String = { row, key ->
-                val idx = headerColNameAndIdxMap.entries.firstOrNull { it.key.contains(key) }?.value
-                row.getCell(idx!!)?.toString()!!
             }
 
             var inserted = 0
