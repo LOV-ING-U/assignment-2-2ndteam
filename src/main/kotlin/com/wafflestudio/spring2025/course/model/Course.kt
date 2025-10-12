@@ -16,8 +16,8 @@ data class Course(
     var grade: Int, // 학년
     var courseNumber: String, // 교과목번호
     var classNumber: String, // 강좌번호
-    var name: String, // 교과목명
-    var subName: String, // 부제
+    var title: String, // 교과목명
+    var subtitle: String, // 부제
     var credit: Int, // 학점
     var professor: String, // 주담당교수
     var room: String // 강의실(동-호)(#연건, *평창)

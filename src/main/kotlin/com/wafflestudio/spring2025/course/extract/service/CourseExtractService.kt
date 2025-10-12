@@ -69,8 +69,8 @@ class CourseExtractService(
                         grade = grade,
                         courseNumber = courseNumber,
                         classNumber = classNumber,
-                        name = name,
-                        subName = subName,
+                        title = name,
+                        subtitle = subName,
                         credit = credit,
                         professor = professor,
                         room = room
