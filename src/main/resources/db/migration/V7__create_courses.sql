@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS course
 (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    'year' INT NOT NULL,
+    `year` INT NOT NULL,
     semester VARCHAR(16) NOT NULL,
     category VARCHAR(64) NULL,
     college VARCHAR(64) NULL,
@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS course
     courseNumber VARCHAR(64) NULL,
     classNumber VARCHAR(64) NULL,
     title VARCHAR(128) NOT NULL,
+    subtitle VARCHAR(128) NULL,
     credit INT NOT NULL,
     professor VARCHAR(64) NULL,
     room VARCHAR(64) NULL,
@@ -32,8 +33,8 @@ CREATE TABLE IF NOT EXISTS course_time(
 CREATE TABLE IF NOT EXISTS timetable(
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    'name' VARCHAR(64) NOT NULL,
-    'year' INT NOT NULL,
+    `name` VARCHAR(64) NOT NULL,
+    `year` INT NOT NULL,
     semester VARCHAR(16) NOT NULL,
 
     UNIQUE KEY unique_timetable(user_id, year, semester, name)

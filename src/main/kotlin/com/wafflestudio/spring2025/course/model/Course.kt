@@ -1,6 +1,7 @@
 package com.wafflestudio.spring2025.course.model
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("course")
@@ -12,7 +13,7 @@ data class Course(
     var category: String, // 교과구분
     var college: String, // 개설대학
     var department: String, // 개설학과
-    var procedure: String, // 이수과정
+    @Column("program") var procedure: String, // 이수과정
     var grade: Int, // 학년
     var courseNumber: String, // 교과목번호
     var classNumber: String, // 강좌번호
