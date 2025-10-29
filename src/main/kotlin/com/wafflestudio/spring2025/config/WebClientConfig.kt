@@ -18,6 +18,6 @@ class WebClientConfig (
     @Bean
     fun sugangWebClient(): WebClient {
         val httpClient = HttpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeoutMS).responseTimeout(Duration.ofMillis(readTimeoutMS.toLong()))
-        return WebClient.builder().baseUrl(baseUrl).clientConnector(ReactorClientHttpConnector(httpClient)).defaultHeader("User-Agent", "Mozilla/5.0").build()
+        return WebClient.builder().baseUrl(baseUrl).defaultHeader("User-Agent", "Mozilla/5.0").clientConnector(ReactorClientHttpConnector(httpClient)).build()
     }
 }
