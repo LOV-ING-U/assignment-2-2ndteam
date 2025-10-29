@@ -119,7 +119,7 @@ private fun transformData(
 
     val location = { i: Int -> room.getOrNull(i) ?: if(room.size == 1) room[0] else "" }
 
-    val regex = Regex("""^([월화수목금토일])\((\d{1,2}):(\d{2})~(\d{1,2}):(d{2})\)$""")
+    val regex = Regex("""^([월화수목금토일])\((\\d{1,2}):(\\d{2})~(\\d{1,2}):(\\d{2})\)$""")
 
     val result = mutableListOf<Slot>()
 

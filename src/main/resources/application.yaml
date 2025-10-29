@@ -22,3 +22,12 @@ logging:
             JdbcTemplate: DEBUG
             namedparam:
               NamedParameterJdbcTemplate: TRACE
+
+sugang:
+  base-url: "https://sugang.snu.ac.kr"
+  init-url: "/sugang/co/co010.action"
+  ajax-url: "/sugang/cc/cc100ajax.action"
+  search-url: "/sugang/cc/cc100InterfaceSrch.action"
+  export-url: "/sugang/cc/cc100InterfaceExcel.action"
+  connect-timeout-ms: 5000
+  read-timeout-ms: 15000

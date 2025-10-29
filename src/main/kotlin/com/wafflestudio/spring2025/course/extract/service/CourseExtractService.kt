@@ -8,10 +8,15 @@ import java.io.InputStream
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Row
+import org.springframework.jdbc.core.JdbcTemplate
+import com.wafflestudio.spring2025.course.extract.dto.CourseSyncResultDto
 
 @Service
 class CourseExtractService(
-    private val courseExtractRepository: CourseExtractRepository
+    private val courseExtractRepository: CourseExtractRepository,
+    private val courseTimeExtractService: CourseTimeExtractService,
+    private val sugangFetchService: SugangFetchService,
+    private val jdbcTemplate: JdbcTemplate
 ){
     private val keys = listOf("교과구분", "개설대학", "개설학과", "이수과정", "학년", "교과목번호",
         "강좌번호", "교과목명", "부제명", "학점", "강의", "실습", "수업교시", "수업형태", "강의실",
@@ -82,5 +87,35 @@ class CourseExtractService(
 
             return inserted
         }
+    }
+
+    @Transactional
+    fun syncFromSugang(
+        year: Int,
+        semCode: String
+    ): CourseSyncResultDto {
+        val bytes = sugangFetchService.fetchXls(year, semCode)
+
+        jdbcTemplate.update("DELETE FROM course_time WHERE course_id IN (SELECT id FROM course WHERE year=? AND semester=?)",
+            year, "FALL")
+
+        jdbcTemplate.update("DELETE FROM course WHERE year=? AND semester=?",
+            year, "FALL")
+
+        val insertedCourses = bytes.inputStream().use {
+            readInputXlsAndPutInDB(year, "FALL", it)
+        }
+
+        val insertedCourseTimes = bytes.inputStream().use {
+            courseTimeExtractService.importTimesFromXls(year, "FALL", it)
+        }
+
+        return CourseSyncResultDto(
+            year = year,
+            semester = "FALL",
+            fetchedBytes = bytes.size,
+            insertedCourses = insertedCourses,
+            insertedCourseTimes = insertedCourseTimes
+        )
     }
 }
