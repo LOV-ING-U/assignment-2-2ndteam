@@ -22,7 +22,11 @@ class CourseTimeExtractController (
         @RequestParam semester: String,
         @RequestPart file: MultipartFile
     ): ResponseEntity<CourseTimeExtractDto> {
-        val inserted = courseTimeExtractService....;
+        val inserted = courseTimeExtractService.importTimesFromXls(
+            year = year,
+            semester = semester,
+            inputStream = file.inputStream
+        )
         return ResponseEntity.ok(CourseTimeExtractDto(inserted))
     }
 }
