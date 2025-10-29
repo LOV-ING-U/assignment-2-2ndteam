@@ -10,11 +10,11 @@ CREATE TABLE IF NOT EXISTS timetables(
 
 CREATE TABLE IF NOT EXISTS timetable_course(
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    timetable_num BIGINT NOT NULL,
+    timetable_id BIGINT NOT NULL,
     course_id BIGINT NOT NULL,
 
-    CONSTRAINT fk_timetable_course_w_timetable FOREIGN KEY (timetable_num) REFERENCES timetable(id) ON DELETE CASCADE,
+    CONSTRAINT fk_timetable_course_w_timetable FOREIGN KEY (timetable_id) REFERENCES timetable(id) ON DELETE CASCADE,
     CONSTRAINT fk_timetable_course_w_course FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,
 
-    UNIQUE KEY unique_timetable_course(timetable_num, course_id)
+    UNIQUE KEY unique_timetable_course(timetable_id, course_id)
 );

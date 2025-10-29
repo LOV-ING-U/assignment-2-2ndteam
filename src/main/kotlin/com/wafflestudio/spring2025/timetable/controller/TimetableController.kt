@@ -1,11 +1,10 @@
 package com.wafflestudio.spring2025.timetable.controller
 
-// @TODO
-
-import com.wafflestudio.spring2025.board.dto.CreateBoardRequest
-import com.wafflestudio.spring2025.board.dto.CreateBoardResponse
-import com.wafflestudio.spring2025.board.dto.ListBoardResponse
-import com.wafflestudio.spring2025.board.service.BoardService
+import com.wafflestudio.spring2025.timetable.dto.CreateTimetableRequest
+import com.wafflestudio.spring2025.timetable.dto.CreateTimetableResponse
+import com.wafflestudio.spring2025.timetable.service.TimetableService
+import com.wafflestudio.spring2025.user.LoggedInUser
+import com.wafflestudio.spring2025.user.model.User
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -14,21 +13,23 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/v1/boards")
+@RequestMapping("/api/v1/timetables")
 class TimetableController(
-    private val boardService: BoardService,
+    private val timetableService: TimetableService,
 ) {
     @PostMapping
     fun create(
-        @RequestBody createRequest: CreateBoardRequest,
-    ): ResponseEntity<CreateBoardResponse> {
-        val board = boardService.create(createRequest.name)
-        return ResponseEntity.ok(board)
+        @RequestBody createRequest: CreateTimetableRequest,
+        @LoggedInUser user: User,
+    ): ResponseEntity<CreateTimetableResponse> {
+        val timetable =
+            timetableService.create(
+                name = createRequest.name,
+                year = createRequest.year,
+                semester = createRequest.semester,
+                user = user,
+            )
+        return ResponseEntity.ok(timetable)
     }
 
-    @GetMapping
-    fun list(): ResponseEntity<ListBoardResponse> {
-        val boards = boardService.list()
-        return ResponseEntity.ok(boards)
-    }
 }
