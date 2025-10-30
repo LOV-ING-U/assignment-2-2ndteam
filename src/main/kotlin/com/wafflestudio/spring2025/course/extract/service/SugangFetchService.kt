@@ -43,7 +43,19 @@ class SugangFetchService (
         // downloading excel(byte)
         val export = baseExportForm(year, semCode).toFormDataInserter()
         return webClient.post().uri(exportUrl).header(HttpHeaders.REFERER, "https://sugang.snu.ac.kr/sugang/co/co010.action").contentType(
-            MediaType.APPLICATION_FORM_URLENCODED).body(export).retrieve().bodyToMono(ByteArray::class.java).block() ?: error("Empty excel")
+            MediaType.APPLICATION_FORM_URLENCODED).body(export).retrieve().onStatus({ !it.is2xxSuccessful }) { resp ->
+                resp.bodyToMono(String::class.java).map { body ->
+                    IllegalStateException("Excel export failed: ${resp.statusCode()} body=$body")
+                }
+            }
+            .toEntity(ByteArray::class.java)
+            .map { entity ->
+                val ct = entity.headers.contentType?.toString() ?: ""
+                require(ct.contains("application/vnd.ms-excel") || ct.contains("application/octet-stream")) {
+                    "Unexpected content-type from export: $ct"
+                }
+                entity.body ?: error("Empty excel bytes")
+            }.block()!!
     }
 
     private fun baseSearchForm(

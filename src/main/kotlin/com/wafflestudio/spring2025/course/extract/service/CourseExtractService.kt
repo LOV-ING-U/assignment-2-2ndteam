@@ -46,6 +46,8 @@ class CourseExtractService(
             }
 
             var inserted = 0
+            val seen = mutableSetOf<Pair<String, String>>()
+
             for(n in 3..sheet.lastRowNum){
                 val row = sheet.getRow(n) ?: continue
 
@@ -61,6 +63,9 @@ class CourseExtractService(
                 val credit = get(row, "학점").toIntOrNull() ?: 0
                 val professor = get(row, "주담당교수")
                 val room = get(row, "강의실(동-호)(#연건, *평창)")
+
+                val key = courseNumber to classNumber
+                if(!seen.add(key)) continue
 
                 courseExtractRepository.save(
                     Course(

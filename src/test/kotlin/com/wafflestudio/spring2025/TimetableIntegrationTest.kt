@@ -1,26 +1,35 @@
 package com.wafflestudio.spring2025
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
+import com.wafflestudio.spring2025.course.extract.repository.CourseTimeExtractRepository
 import com.wafflestudio.spring2025.helper.DataGenerator
 import org.junit.jupiter.api.Disabled
+import org.springframework.http.MediaType as HttpMediaType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.MediaType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 class TimetableIntegrationTest
     @Autowired
     constructor(
         private val mvc: MockMvc,
         private val mapper: ObjectMapper,
         private val dataGenerator: DataGenerator,
+        private val courseExtractRepository: CourseExtractRepository,
+        private val courseTimeExtractRepository: CourseTimeExtractRepository
     ) {
         @Test
         fun `should create a timetable`() {
@@ -88,9 +97,44 @@ class TimetableIntegrationTest
         }
 
         @Test
-        @Disabled("곧 안내드리겠습니다")
+        // @Disabled("곧 안내드리겠습니다")
         fun `should fetch and save course information from SNU course registration site`() {
             // 서울대 수강신청 사이트에서 강의 정보를 가져와 저장할 수 있다
+            val year = 2025
+            val semCode = "U000200002"
+
+            val beforeCourses = courseExtractRepository.count()
+            val beforeTimes = courseTimeExtractRepository.count()
+
+            val requestBody = """{"year":$year,"semCode":"$semCode"}"""
+
+            mvc.perform(
+                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
+            ).andExpect(status().isOk).andExpect(jsonPath("$.fetchedBytes").exists())
+                .andExpect(jsonPath("$.insertedCourses").exists())
+                .andExpect(jsonPath("$.insertedCourseTimes").exists())
+                .andReturn()
+
+            val afterFirstCourses = courseExtractRepository.count()
+            val afterFirstTimes = courseTimeExtractRepository.count()
+
+            // check
+            assert(afterFirstCourses > beforeCourses)
+            assert(afterFirstTimes > beforeTimes)
+
+            // again, and check if DB is not changed
+            mvc.perform(
+                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
+            ).andExpect(status().isOk)
+                .andExpect(jsonPath("$.insertedCourses").value(0))
+                .andExpect(jsonPath("$.insertedCourseTimes").value(0))
+
+            val afterSecondCourses = courseExtractRepository.count()
+            val afterSecondTimes = courseTimeExtractRepository.count()
+
+            // check
+            assert(afterSecondCourses == afterFirstCourses)
+            assert(afterSecondTimes == afterFirstTimes)
         }
 
         @Test

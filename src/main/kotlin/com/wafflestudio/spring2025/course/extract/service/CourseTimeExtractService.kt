@@ -15,8 +15,6 @@ import javax.sql.DataSource
 class CourseTimeExtractService(
     private val courseExtractRepository: CourseExtractRepository,
     private val courseTimeExtractRepository: CourseTimeExtractRepository,
-    private val idGeneratingEntityCallback: IdGeneratingEntityCallback,
-    private val dataSource: DataSource
 ){
     private val keys = listOf("교과구분", "개설대학", "개설학과", "이수과정", "학년", "교과목번호",
         "강좌번호", "교과목명", "부제명", "학점", "강의", "실습", "수업교시", "수업형태", "강의실",
