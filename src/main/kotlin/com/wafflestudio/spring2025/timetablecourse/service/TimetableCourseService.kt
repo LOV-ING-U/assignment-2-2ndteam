@@ -124,4 +124,15 @@ class TimetableCourseService(
             courses = courseDtos
         )
     }
+
+    fun delete(timetableId: Long, courseId: Long, user: User) {
+        val timetable = timetableRepository.findByIdOrNull(timetableId)
+            ?: throw 
+        if (timetable.userId != user.id) throw //@TODO
+        if (!timetableCourseRepository.existsByTimetableIdAndCourseId(timetableId, courseId)) {
+            throw 
+        }
+
+        timetableCourseRepository.deleteByTimetableIdAndCourseId(timetableId, courseId)
+    }
 }

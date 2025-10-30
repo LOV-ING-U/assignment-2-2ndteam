@@ -2,6 +2,7 @@ package com.wafflestudio.spring2025.timetablecourse.controller
 
 import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseRequest
 import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseResponse
+import com.wafflestudio.spring2025.timetablecourse.dto.DeleteTimetableCourseRequest
 import com.wafflestudio.spring2025.timetablecourse.service.TimetableCourseService
 import com.wafflestudio.spring2025.user.LoggedInUser
 import com.wafflestudio.spring2025.user.model.User
@@ -31,5 +32,20 @@ class TimetableCourseController(
                 user = user,
             )
         return ResponseEntity.ok(timetableCourse)
+    }
+
+    // @DeleteMapping("/{timetableId}/courses/{courseId}") 이렇게 할 수도 있지만...? 
+    // 이러면 TimetableController에 가야 하는 게...?
+    @DeleteMapping
+    fun delete(
+        @RequestBody request: DeleteTimetableCourseRequest,
+        @LoggedInUser user: User
+    ): ResponseEntity<Unit> {
+        timetableCourseService.delete(
+            timetableId = request.timetableId,
+            courseId = request.courseId,
+            user = user
+        )
+        return ResponseEntity.noContent().build()
     }
 }
