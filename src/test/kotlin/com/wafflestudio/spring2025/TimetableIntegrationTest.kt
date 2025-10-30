@@ -102,7 +102,7 @@ class TimetableIntegrationTest
         fun `should fetch and save course information from SNU course registration site`() {
             // 서울대 수강신청 사이트에서 강의 정보를 가져와 저장할 수 있다
             val year = 2025
-            val semCode = "U000200002"
+            val semCode = "U000200002U000300001"
 
             val beforeCourses = courseExtractRepository.count()
             val beforeTimes = courseTimeExtractRepository.count()
@@ -143,7 +143,7 @@ class TimetableIntegrationTest
         fun `check saved datas with small queries`() {
             // 실제 데이터 저장되었는지 확인해보는 쿼리
             val year = 2025
-            val semCode = "U000200002"
+            val semCode = "U000200002U000300001"
 
             val requestBody = """{"year":$year,"semCode":"$semCode"}"""
 
