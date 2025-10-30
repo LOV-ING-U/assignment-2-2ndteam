@@ -5,4 +5,5 @@ import org.springframework.data.repository.ListCrudRepository
 
 interface TimetableCourseRepository : ListCrudRepository<Timetable, Long> {
     fun existsByTimetableIdAndCourseId(timetableId: Long, courseId: Long): Boolean
+    fun findByTimetableId(timetableId: Long): List<TimetableCourse>
 }
