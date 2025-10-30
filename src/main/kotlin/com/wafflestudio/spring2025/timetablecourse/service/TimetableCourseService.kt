@@ -1,5 +1,11 @@
 package com.wafflestudio.spring2025.timetablecourse.service
 
+import com.wafflestudio.spring2025.timetablecourse.TimetableNotFoundException
+import com.wafflestudio.spring2025.timetablecourse.CourseNotFoundException
+import com.wafflestudio.spring2025.timetablecourse.TimetableAccessDeniedException
+import com.wafflestudio.spring2025.timetablecourse.CourseTimeConflictException
+import com.wafflestudio.spring2025.timetablecourse.CourseNotInTimetableException
+
 import com.wafflestudio.spring2025.timetable.dto.core.TimetableDto
 import com.wafflestudio.spring2025.timetable.model.Timetable
 
@@ -27,14 +33,12 @@ class TimetableCourseService(
         user: User,
     ): TimetableCourseDto {
         val timetable = timetableRepository.findByIdOrNull(timetableId)
-            ?: throw //@TODO
+            ?: throw TimetableNotFoundException()
         val course = courseRepository.findByIdOrNull(courseId)
-            ?: throw //@TODO
-
-        if (timetable.userId != user.id) throw //@TODO
-
+            ?: throw CourseNotFoundException()
+        if (timetable.userId != user.id) TimetableAccessDeniedException()
         if (timetableCourseRepository.existsByTimetableIdAndCourseId(timetableId, courseId)) {
-            throw //@TODO
+            throw CourseAlreadyExistsInTimetableException()
         }
 
         // 시간 중복 검증
@@ -48,7 +52,8 @@ class TimetableCourseService(
                 if (new.weekday == exist.weekday &&
                     !(new.endMin <= exist.startMin || new.startMin >= exist.endMin)
                 ) {
-                    throw //@TODO
+                    throw CourseTimeConflictException()
+                    // 같은 강의를 넣으려고 하는 경우 다른 에러를 띄우도록 할 수도 있는데, 어차피 똑같아서 이렇게 구현함
                 }
             }
         }
@@ -66,8 +71,8 @@ class TimetableCourseService(
     // 시간표 상세 조회
     fun getTimetableDetail(timetableId: Long, user: User): TimetableDetailDto {
         val timetable = timetableRepository.findByIdOrNull(timetableId)
-            ?: throw // @TODO
-        if (timetable.userId != user.id) throw //@TODO
+            ?: throw TimetableNotFoundException()
+        if (timetable.userId != user.id) throw TimetableAccessDeniedException()
 
         // 해당 시간표에 포함된 과목 ID 뽑기
         val timetableCourses = timetableCourseRepository.findByTimetableId(timetableId)
@@ -127,10 +132,12 @@ class TimetableCourseService(
 
     fun delete(timetableId: Long, courseId: Long, user: User) {
         val timetable = timetableRepository.findByIdOrNull(timetableId)
-            ?: throw 
-        if (timetable.userId != user.id) throw //@TODO
+            ?: throw TimetableNotFoundException()
+        val course = courseRepository.findByIdOrNull(courseId)
+            ?: throw CourseNotFoundException()
+        if (timetable.userId != user.id) TimetableAccessDeniedException()
         if (!timetableCourseRepository.existsByTimetableIdAndCourseId(timetableId, courseId)) {
-            throw 
+            throw CourseNotInTimetableException()
         }
 
         timetableCourseRepository.deleteByTimetableIdAndCourseId(timetableId, courseId)
