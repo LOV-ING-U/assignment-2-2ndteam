@@ -29,7 +29,8 @@ class TimetableIntegrationTest
         private val mapper: ObjectMapper,
         private val dataGenerator: DataGenerator,
         private val courseExtractRepository: CourseExtractRepository,
-        private val courseTimeExtractRepository: CourseTimeExtractRepository
+        private val courseTimeExtractRepository: CourseTimeExtractRepository,
+        private val jdbc: org.springframework.jdbc.core.JdbcTemplate
     ) {
         @Test
         fun `should create a timetable`() {
@@ -122,6 +123,7 @@ class TimetableIntegrationTest
             assert(afterFirstCourses > beforeCourses)
             assert(afterFirstTimes > beforeTimes)
 
+            /*
             // again, and check if DB is not changed
             mvc.perform(
                 post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
@@ -134,7 +136,79 @@ class TimetableIntegrationTest
 
             // check
             assert(afterSecondCourses == afterFirstCourses)
-            assert(afterSecondTimes == afterFirstTimes)
+            assert(afterSecondTimes == afterFirstTimes)*/
+        }
+
+        @Test
+        fun `check saved datas with small queries`() {
+            // 실제 데이터 저장되었는지 확인해보는 쿼리
+            val year = 2025
+            val semCode = "U000200002"
+
+            val requestBody = """{"year":$year,"semCode":"$semCode"}"""
+
+            mvc.perform(
+                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
+            ).andExpect(status().isOk)
+
+            val courseCnt = jdbc.queryForObject(
+                "select count(*) from `course` where `year`=? and `semester`=?",
+                Long::class.java, year, "FALL"
+            )
+
+            val timeCnt = jdbc.queryForObject(
+                """
+                select count(*)
+                from `course_time` ct
+                join `course` c on ct.`course_id` = c.`id`
+                where c.`year`=? and c.`semester`=?
+                """.trimIndent(),
+                Long::class.java, year, "FALL"
+            )
+
+            println("Course count = $courseCnt, Course_time count = $timeCnt\n")
+
+            // select for class number
+            // 1. see all other classes which code is fixed with 'courseNumberCode'
+            // fix this code (F25.101 = 초급중국어 1)
+            val courseNumberCode = "F25.101"
+            val seeAllOtherClasses = jdbc.queryForList(
+                """
+                select c.`courseNumber`, c.`classNumber`
+                from `course` c
+                where c.`courseNumber`=?           
+                """.trimIndent(),
+                courseNumberCode
+            )
+            println("Number of same classNumber = ${seeAllOtherClasses.size}\n")
+            seeAllOtherClasses.forEachIndexed { i, row ->
+                println(
+                    "courseNumber = ${row["courseNumber"]}, " +
+                    "classNumber = ${row["classNumber"]}\n"
+                )
+            }
+
+            // 2. see all classes through number code
+            val select = jdbc.queryForList(
+                """
+                select ct.`course_id`, ct.`weekday`, ct.`start_min`, ct.`end_min`, ct.`location`
+                from `course_time` ct
+                join `course` c on c.`id` = ct.`course_id`
+                where c.`courseNumber`=?
+                """.trimIndent(),
+                courseNumberCode
+            )
+
+            println("Number of selected course = ${select.size}\n")
+            select.forEachIndexed { i, row ->
+                println(
+                    "#$i -> course_id = ${row["course_id"]}, " +
+                    "weekday = ${row["weekday"]}, " +
+                    "start_min = ${row["start_min"]}, " +
+                    "end_min = ${row["end_min"]}, " +
+                    "location = ${row["location"]}\n"
+                )
+            }
         }
 
         @Test

@@ -45,7 +45,7 @@ class CourseTimeExtractService(
             }
 
             // extract time
-            val collected = mutableListOf<Triple<Long, String, String>>()
+            val collected = mutableSetOf<Triple<Long, String, String>>()
 
             for(r in 3..sheet.lastRowNum){
                 val row = sheet.getRow(r) ?: continue
