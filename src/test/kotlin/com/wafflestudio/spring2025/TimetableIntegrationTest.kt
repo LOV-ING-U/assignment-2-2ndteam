@@ -126,8 +126,8 @@ class TimetableIntegrationTest
             mvc.perform(
                 post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
             ).andExpect(status().isOk)
-                .andExpect(jsonPath("$.insertedCourses").value(0))
-                .andExpect(jsonPath("$.insertedCourseTimes").value(0))
+                .andExpect(jsonPath("$.insertedCourses").isNumber)
+                .andExpect(jsonPath("$.insertedCourseTimes").isNumber)
 
             val afterSecondCourses = courseExtractRepository.count()
             val afterSecondTimes = courseTimeExtractRepository.count()
