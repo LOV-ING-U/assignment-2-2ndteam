@@ -17,7 +17,7 @@ interface CourseRepository : CrudRepository<Course, Long> {
                 c.title LIKE CONCAT('%', :keyword, '%') OR
                 c.professor LIKE CONCAT('%', :keyword, '%')
             )
-            AND (:nextID IS NULL OR c.id > :nextId)
+            AND (:nextId IS NULL OR c.id > :nextId)
         ORDER BY c.id ASC
         LIMIT :limit
     """)
