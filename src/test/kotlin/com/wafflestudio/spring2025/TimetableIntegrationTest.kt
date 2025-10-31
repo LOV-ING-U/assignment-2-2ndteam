@@ -128,7 +128,7 @@ class TimetableIntegrationTest
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.name").value(timetable.name))
                     .andExpect(jsonPath("$.year").value(timetable.year))
-                    .andExpect(jsonPath("$.semester").value(timetable.semester))
+                    .andExpect(jsonPath("$.semester").value(timetable.semester.name))
                     .andExpect(jsonPath("$.courses", hasSize<Any>(1)))
                     .andExpect(jsonPath("$.courses[0].id").value(course.id))
                     .andExpect(jsonPath("$.totalCredit").value(3))
@@ -592,6 +592,10 @@ class TimetableIntegrationTest
             dataGenerator.addCourseToTimetable(timetable, course2)
             dataGenerator.addCourseToTimetable(timetable, course3)
 
+            val id1 = requireNotNull(course1.id) { "not null" }.toInt()
+            val id2 = requireNotNull(course2.id) { "not null" }.toInt()
+            val id3 = requireNotNull(course3.id) { "not null" }.toInt()
+
                 mvc.perform(
                     get("/api/v1/timetables/{id}", timetable.id)
                         .header("Authorization", "Bearer $token")
@@ -599,7 +603,7 @@ class TimetableIntegrationTest
                 )
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.courses", hasSize<Any>(3)))
-                    .andExpect(jsonPath("$.courses[*].id", hasItems(course1.id, course2.id, course3.id)))
+                    .andExpect(jsonPath("$.courses[*].id", hasItems(id1, id2, id3)))
                     .andExpect(jsonPath("$.totalCredit").value(6))
         }
 
