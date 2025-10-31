@@ -33,7 +33,7 @@ class CourseService (
         }
 
         val courseMap = courseRepository.findByIds(ids).associateBy { it.id!! }
-        val timeMap = courseTimeRepository.findByCourseIds(ids).groupBy { it.courseId }
+        val timeMap = courseTimeRepository.findByCourseIdIn(ids).groupBy { it.courseId }
 
         val items = ids.mapNotNull {
             id ->

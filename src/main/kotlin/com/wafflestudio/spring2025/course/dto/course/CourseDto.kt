@@ -18,5 +18,5 @@ data class CourseDto(
     val department: String?,
     val grade: Int?,
     val procedure: String?,
-    val times: List<CourseTimeDto>
+    val times: List<CourseTimeDto> = emptyList()
 )

@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param
 
 interface CourseTimeRepository : CrudRepository<CourseTime, Long> {
 
-    @Query("SELECT * FROM course_time WHERE course_id IN (:ids)")
-    fun findByCourseIds(@Param("ids") ids: List<Long>): List<CourseTime>
+    fun findByCourseId(courseId: Long): List<CourseTime>
+
+    fun findByCourseIdIn(courseIds: List<Long>): List<CourseTime>
 }
