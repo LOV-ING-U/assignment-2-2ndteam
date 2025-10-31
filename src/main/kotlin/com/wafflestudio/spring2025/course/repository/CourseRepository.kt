@@ -1,4 +1,33 @@
 package com.wafflestudio.spring2025.course.repository
 
-interface CourseRepository {
+import com.wafflestudio.spring2025.course.model.Course
+import org.springframework.data.jdbc.repository.query.Query
+import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.query.Param
+
+interface CourseRepository : CrudRepository<Course, Long> {
+
+    @Query("""
+        SELECT c.id
+        FROM course c
+        WHERE c.year = :year
+            AND c.semester = :semester
+            AND (
+                :keyword IS NULL OR :keyword = '' OR
+                c.title LIKE CONCAT('%', :keyword, '%')
+            )
+            AND (:nextID IS NULL OR c.id > :nextId)
+        ORDER BY c.id ASC
+        LIMIT :limit
+    """)
+    fun findIdsForSearch(
+        @Param("year") year: Int,
+        @Param("semester") semester: String,
+        @Param("keyword") keyword: String?,
+        @Param("nextId") nextId: Long?,
+        @Param("limit") limit: Int
+    ): List<Long>
+
+    @Query("SELECT * FROM course WHERE id IN (:ids)")
+    fun findByIds(@Param("ids") ids: List<Long>): List<Course>
 }
