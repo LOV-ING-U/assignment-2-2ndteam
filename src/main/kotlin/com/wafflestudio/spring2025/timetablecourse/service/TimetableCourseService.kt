@@ -35,7 +35,7 @@ class TimetableCourseService(
             ?: throw TimetableNotFoundException()
         val course = courseRepository.findByIdOrNull(courseId)
             ?: throw CourseNotFoundException()
-        if (timetable.userId != user.id) TimetableAccessDeniedException()
+        if (timetable.userId != user.id) throw TimetableAccessDeniedException()
 
         // 시간 중복 검증
         val newTimes = courseTimeRepository.findByCourseId(courseId) // 새로 추가하려는 강의 시간

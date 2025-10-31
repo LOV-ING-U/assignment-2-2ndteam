@@ -33,7 +33,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TimetableIntegrationTest
     @Autowired
