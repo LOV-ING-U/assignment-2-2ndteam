@@ -27,6 +27,7 @@ class SugangFetchService (
         webClient.post().uri(ajaxUrl).header(HttpHeaders.REFERER, "https://sugang.snu.ac.kr/sugang/co/co010.action").contentType(
             MediaType.APPLICATION_FORM_URLENCODED).body(BodyInserters.fromFormData("openUpDeptCd", "").with("openDeptCd", "")).retrieve().toBodilessEntity().block()
 
+
         // before semester lookup
         webClient.post().uri(ajaxUrl).header(HttpHeaders.REFERER, "https://sugang.snu.ac.kr/sugang/co/co010.action").contentType(
             MediaType.APPLICATION_FORM_URLENCODED).body(BodyInserters.fromFormData("openUpDeptCd", "").with("openDeptCd", "").with("srchOpenSchyy", year.toString()).with("srchOpenShtm", "U000200002U000300002")).retrieve().toBodilessEntity().block()
