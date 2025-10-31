@@ -23,6 +23,7 @@ logging:
             namedparam:
               NamedParameterJdbcTemplate: TRACE
 
+<<<<<<< HEAD
 sugang:
   base-url: "https://sugang.snu.ac.kr"
   init-url: "/sugang/co/co010.action"
@@ -31,3 +32,13 @@ sugang:
   export-url: "/sugang/cc/cc100InterfaceExcel.action"
   connect-timeout-ms: 5000
   read-timeout-ms: 15000
+=======
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+  api-docs:
+    path: /api-docs
+    enabled: true
+>>>>>>> b31d2ab66b7d6f254d2584a8ffa74f69a2553db7

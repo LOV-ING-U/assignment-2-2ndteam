@@ -81,7 +81,6 @@ class CourseTimeExtractService(
                             startMin = s.startMin,
                             endMin = s.endMin,
                             location = s.location.ifBlank { null }
-
                         )
                     )
 

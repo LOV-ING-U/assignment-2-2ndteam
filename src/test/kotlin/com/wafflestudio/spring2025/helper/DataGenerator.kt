@@ -6,6 +6,9 @@ import com.wafflestudio.spring2025.comment.model.Comment
 import com.wafflestudio.spring2025.comment.repository.CommentRepository
 import com.wafflestudio.spring2025.post.model.Post
 import com.wafflestudio.spring2025.post.repository.PostRepository
+import com.wafflestudio.spring2025.timetable.model.Semester
+import com.wafflestudio.spring2025.timetable.model.Timetable
+import com.wafflestudio.spring2025.timetable.repository.TimetableRepository
 import com.wafflestudio.spring2025.user.JwtTokenProvider
 import com.wafflestudio.spring2025.user.model.User
 import com.wafflestudio.spring2025.user.repository.UserRepository
@@ -13,12 +16,24 @@ import org.mindrot.jbcrypt.BCrypt
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 
+// @TODO:
+/* fun generateTimetable(user: User): Timetable
+fun generateCourse(
+    credit: Int = 3,
+    weekday: Int = 1,
+    startMin: Int = 600,
+    endMin: Int = 660,
+): Course
+fun addCourseToTimetable(timetable: Timetable, course: Course) */
+// 이런 식의 timetable, course 생성 함수가 있어야 함.
+
 @Component
 class DataGenerator(
     private val userRepository: UserRepository,
     private val boardRepository: BoardRepository,
     private val postRepository: PostRepository,
     private val commentRepository: CommentRepository,
+    private val timetableRepository: TimetableRepository,
     private val jwtTokenProvider: JwtTokenProvider,
 ) {
     fun generateUser(
@@ -78,4 +93,19 @@ class DataGenerator(
             )
         return comment
     }
+
+    fun generateTimetable(
+        user: User,
+        name: String = "Default Timetable",
+        year: Int = 2025,
+        semester: Semester = Semester.SPRING,
+    ): Timetable =
+        timetableRepository.save(
+            Timetable(
+                userId = user.id!!,
+                name = name,
+                year = year,
+                semester = semester,
+            ),
+        )
 }
