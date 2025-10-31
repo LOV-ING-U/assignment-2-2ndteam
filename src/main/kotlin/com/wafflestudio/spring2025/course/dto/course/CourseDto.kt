@@ -16,6 +16,7 @@ data class CourseDto(
     val category: String?,
     val college: String?,
     val department: String?,
-    val academicYear: String?,
+    val grade: Int?,
+    val procedure: String?,
     val times: List<CourseTimeDto>
 )
