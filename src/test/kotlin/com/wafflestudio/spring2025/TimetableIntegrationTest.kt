@@ -9,32 +9,21 @@ import com.wafflestudio.spring2025.timetable.dto.UpdateTimetableRequest
 import com.wafflestudio.spring2025.timetable.model.Semester
 import com.wafflestudio.spring2025.timetable.repository.TimetableRepository
 import org.junit.jupiter.api.Disabled
-import org.springframework.http.MediaType as HttpMediaType
+import org.springframework.http.MediaType
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.MediaType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-<<<<<<< HEAD
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.testcontainers.junit.jupiter.Testcontainers
-=======
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.testcontainers.junit.jupiter.Testcontainers
-import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
-import com.wafflestudio.spring2025.course.extract.repository.CourseTimeExtractRepository
 import com.wafflestudio.spring2025.course.model.Course
->>>>>>> b31d2ab66b7d6f254d2584a8ffa74f69a2553db7
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -46,13 +35,10 @@ class TimetableIntegrationTest
         private val mvc: MockMvc,
         private val mapper: ObjectMapper,
         private val dataGenerator: DataGenerator,
-<<<<<<< HEAD
         private val courseExtractRepository: CourseExtractRepository,
         private val courseTimeExtractRepository: CourseTimeExtractRepository,
         private val jdbc: org.springframework.jdbc.core.JdbcTemplate
-=======
         private val timetableRepository: TimetableRepository,
->>>>>>> b31d2ab66b7d6f254d2584a8ffa74f69a2553db7
     ) {
         @Test
         fun `should create a timetable`() {
@@ -483,7 +469,7 @@ class TimetableIntegrationTest
             val requestBody = """{"year":$year,"semCode":"$semCode"}"""
 
             mvc.perform(
-                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
+                post("/course/extract/sync").contentType(MediaType.APPLICATION_JSON).content(requestBody)
             ).andExpect(status().isOk).andExpect(jsonPath("$.fetchedBytes").exists())
                 .andExpect(jsonPath("$.insertedCourses").exists())
                 .andExpect(jsonPath("$.insertedCourseTimes").exists())
@@ -521,7 +507,7 @@ class TimetableIntegrationTest
             val requestBody = """{"year":$year,"semCode":"$semCode"}"""
 
             mvc.perform(
-                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
+                post("/course/extract/sync").contentType(MediaType.APPLICATION_JSON).content(requestBody)
             ).andExpect(status().isOk)
 
             val courseCnt = jdbc.queryForObject(

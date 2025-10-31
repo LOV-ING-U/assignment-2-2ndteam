@@ -1,15 +1,15 @@
 package com.wafflestudio.spring2025.timetablecourse.dto.core
 
-import com.wafflestudio.spring2025.timetablecourse.model.TimetableCourse
-import com.wafflestudio.spring2025.course.model.Course
-import com.wafflestudio.spring2025.course.dto.core.CourseDto
+import com.wafflestudio.spring2025.course.dto.course.CourseDto
+import com.wafflestudio.spring2025.timetable.model.Semester
 import com.wafflestudio.spring2025.timetable.model.Timetable
+import com.wafflestudio.spring2025.timetablecourse.model.TimetableCourse
 
 data class TimetableDetailDto(
     val id: Long?,
     val name: String,
     val year: Int,
-    val semester: String,
+    val semester: Semester,
     val totalCredit: Int,
     val courses: List<CourseDto>
 ) {
@@ -18,8 +18,7 @@ data class TimetableDetailDto(
         name = timetable.name,
         year = timetable.year,
         semester = timetable.semester,
-        timetableId = timetableCourse.timetableId,
-        totalCredit = totalCredit
+        totalCredit = totalCredit,
         courses = courses
     )
 }

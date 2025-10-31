@@ -17,6 +17,7 @@ import com.wafflestudio.spring2025.timetablecourse.model.TimetableCourse
 import com.wafflestudio.spring2025.timetablecourse.repository.TimetableCourseRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import kotlin.collections.emptyList
 
 @Service
 class TimetableCourseService(
@@ -57,10 +58,21 @@ class TimetableCourseService(
             timetableCourseRepository.save(
                 TimetableCourse(
                     timetableId = timetableId,
-                    courseId = course.id,
+                    courseId = courseId,
                 ),
             )
-        return TimetableCourseDto(timetableCourse, course)
+
+        val timeMap = courseTimeRepository.findByCourseId(courseId)
+            val times = timeMap.map {
+                CourseTimeDto(
+                    weekday = it.weekday,
+                    startMin = it.startMin,
+                    endMin = it.endMin,
+                    location = it.location
+                )
+            }
+
+        return TimetableCourseDto(timetableCourse, course, times)
     }
 
     // 시간표 상세 조회
@@ -78,7 +90,7 @@ class TimetableCourseService(
             return TimetableDetailDto(
                 timetable = timetable,
                 totalCredit = 0,
-                courses = emptyList()
+                courses = emptyList(),
             )
         }
 
@@ -99,29 +111,17 @@ class TimetableCourseService(
             } ?: emptyList()
 
             CourseDto(
-                id = course.id,
-                category = course.category,
-                college = course.college,
-                department = course.department,
-                program = course.program,
-                grade = course.grade,
-                courseNumber = course.courseNumber,
-                classNumber = course.classNumber,
-                title = course.title,
-                subtitle = course.subtitle,
-                credit = course.credit,
-                professor = course.professor,
-                room = course.room,
+                c = course,
                 times = times
             )
         }
 
-        val totalCredit = courseDtos.sumOf { it.credit }
+        val totalCredit = courseDtos.sumOf { it.credit ?: 0 }
 
         return TimetableDetailDto(
             timetable = timetable,
             totalCredit = totalCredit,
-            courses = courseDtos
+            courses = courseDtos,
         )
     }
 

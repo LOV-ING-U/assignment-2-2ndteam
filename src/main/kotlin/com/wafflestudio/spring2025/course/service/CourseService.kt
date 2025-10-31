@@ -47,21 +47,7 @@ class CourseService (
                 )
             }
             CourseDto(
-                id = c.id!!,
-                year = c.year,
-                semester = c.semester,
-                courseNumber = c.courseNumber,
-                classNumber = c.classNumber,
-                title = c.title,
-                subtitle = c.subtitle,
-                credit = c.credit,
-                professor = c.professor,
-                room = c.room,
-                category = c.category,
-                college = c.college,
-                department = c.department,
-                grade = c.grade,
-                procedure = c.procedure,
+                c = c,
                 times = times
             )
         }

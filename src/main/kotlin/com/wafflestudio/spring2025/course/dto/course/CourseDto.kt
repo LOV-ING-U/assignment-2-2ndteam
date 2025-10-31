@@ -1,6 +1,8 @@
 package com.wafflestudio.spring2025.course.dto.course
 
 import com.wafflestudio.spring2025.course.dto.coursetime.CourseTimeDto
+import com.wafflestudio.spring2025.course.model.Course
+import com.wafflestudio.spring2025.timetable.model.Timetable
 
 data class CourseDto(
     val id: Long,
@@ -19,4 +21,23 @@ data class CourseDto(
     val grade: Int?,
     val procedure: String?,
     val times: List<CourseTimeDto> = emptyList()
-)
+) {
+    constructor(c: Course, times: List<CourseTimeDto>) : this(
+            id = c.id!!,
+            year = c.year,
+            semester = c.semester,
+            courseNumber = c.courseNumber,
+            classNumber = c.classNumber,
+            title = c.title,
+            subtitle = c.subtitle,
+            credit = c.credit,
+            professor = c.professor,
+            room = c.room,
+            category = c.category,
+            college = c.college,
+            department = c.department,
+            grade = c.grade,
+            procedure = c.procedure,
+            times = times
+    )
+}

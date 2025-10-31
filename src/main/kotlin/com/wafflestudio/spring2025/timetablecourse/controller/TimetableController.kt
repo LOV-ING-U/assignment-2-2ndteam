@@ -8,6 +8,7 @@ import com.wafflestudio.spring2025.user.LoggedInUser
 import com.wafflestudio.spring2025.user.model.User
 
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
