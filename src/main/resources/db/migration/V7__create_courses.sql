@@ -8,13 +8,13 @@ CREATE TABLE IF NOT EXISTS courses
     department VARCHAR(64) NULL,
     program VARCHAR(64) NULL,
     grade INT NULL,
-    courseNumber VARCHAR(64) NULL,
-    classNumber VARCHAR(64) NULL,
-    title VARCHAR(128) NOT NULL,
-    subtitle VARCHAR(128) NULL,
+    courseNumber VARCHAR(32) NULL,
+    classNumber VARCHAR(32) NULL,
+    title VARCHAR(256) NOT NULL,
+    subtitle VARCHAR(256) NULL,
     credit INT NOT NULL,
-    professor VARCHAR(64) NULL,
-    room VARCHAR(64) NULL,
+    professor VARCHAR(32) NULL,
+    room VARCHAR(512) NULL,
 
     UNIQUE KEY unique_course(year, semester, courseNumber, classNumber)
 );
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS course_time(
     weekday INT NOT NULL,
     start_min INT NOT NULL,
     end_min INT NOT NULL,
-    location VARCHAR(64) NULL,
-
+    location VARCHAR(512) NULL,
+  
     CONSTRAINT fk_course_time_w_course FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );

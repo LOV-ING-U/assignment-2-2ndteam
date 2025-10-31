@@ -1,19 +1,28 @@
 package com.wafflestudio.spring2025
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
+import com.wafflestudio.spring2025.course.extract.repository.CourseTimeExtractRepository
 import com.wafflestudio.spring2025.helper.DataGenerator
 import com.wafflestudio.spring2025.timetable.dto.CreateTimetableRequest
 import com.wafflestudio.spring2025.timetable.dto.UpdateTimetableRequest
 import com.wafflestudio.spring2025.timetable.model.Semester
 import com.wafflestudio.spring2025.timetable.repository.TimetableRepository
 import org.junit.jupiter.api.Disabled
+import org.springframework.http.MediaType as HttpMediaType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.MediaType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+<<<<<<< HEAD
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.testcontainers.junit.jupiter.Testcontainers
+=======
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
@@ -24,19 +33,26 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
 import com.wafflestudio.spring2025.course.extract.repository.CourseTimeExtractRepository
 import com.wafflestudio.spring2025.course.model.Course
+>>>>>>> b31d2ab66b7d6f254d2584a8ffa74f69a2553db7
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 class TimetableIntegrationTest
     @Autowired
     constructor(
         private val mvc: MockMvc,
         private val mapper: ObjectMapper,
         private val dataGenerator: DataGenerator,
+<<<<<<< HEAD
+        private val courseExtractRepository: CourseExtractRepository,
+        private val courseTimeExtractRepository: CourseTimeExtractRepository,
+        private val jdbc: org.springframework.jdbc.core.JdbcTemplate
+=======
         private val timetableRepository: TimetableRepository,
+>>>>>>> b31d2ab66b7d6f254d2584a8ffa74f69a2553db7
     ) {
         @Test
         fun `should create a timetable`() {
@@ -455,9 +471,117 @@ class TimetableIntegrationTest
         }
 
         @Test
-        @Disabled("곧 안내드리겠습니다")
+        // @Disabled("곧 안내드리겠습니다")
         fun `should fetch and save course information from SNU course registration site`() {
             // 서울대 수강신청 사이트에서 강의 정보를 가져와 저장할 수 있다
+            val year = 2025
+            val semCode = "U000200002U000300001"
+
+            val beforeCourses = courseExtractRepository.count()
+            val beforeTimes = courseTimeExtractRepository.count()
+
+            val requestBody = """{"year":$year,"semCode":"$semCode"}"""
+
+            mvc.perform(
+                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
+            ).andExpect(status().isOk).andExpect(jsonPath("$.fetchedBytes").exists())
+                .andExpect(jsonPath("$.insertedCourses").exists())
+                .andExpect(jsonPath("$.insertedCourseTimes").exists())
+                .andReturn()
+
+            val afterFirstCourses = courseExtractRepository.count()
+            val afterFirstTimes = courseTimeExtractRepository.count()
+
+            // check
+            assert(afterFirstCourses > beforeCourses)
+            assert(afterFirstTimes > beforeTimes)
+
+            /*
+            // again, and check if DB is not changed
+            mvc.perform(
+                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
+            ).andExpect(status().isOk)
+                .andExpect(jsonPath("$.insertedCourses").isNumber)
+                .andExpect(jsonPath("$.insertedCourseTimes").isNumber)
+
+            val afterSecondCourses = courseExtractRepository.count()
+            val afterSecondTimes = courseTimeExtractRepository.count()
+
+            // check
+            assert(afterSecondCourses == afterFirstCourses)
+            assert(afterSecondTimes == afterFirstTimes)*/
+        }
+
+        @Test
+        fun `check saved datas with small queries`() {
+            // 실제 데이터 저장되었는지 확인해보는 쿼리
+            val year = 2025
+            val semCode = "U000200002U000300001"
+
+            val requestBody = """{"year":$year,"semCode":"$semCode"}"""
+
+            mvc.perform(
+                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
+            ).andExpect(status().isOk)
+
+            val courseCnt = jdbc.queryForObject(
+                "select count(*) from `course` where `year`=? and `semester`=?",
+                Long::class.java, year, "FALL"
+            )
+
+            val timeCnt = jdbc.queryForObject(
+                """
+                select count(*)
+                from `course_time` ct
+                join `course` c on ct.`course_id` = c.`id`
+                where c.`year`=? and c.`semester`=?
+                """.trimIndent(),
+                Long::class.java, year, "FALL"
+            )
+
+            println("Course count = $courseCnt, Course_time count = $timeCnt\n")
+
+            // select for class number
+            // 1. see all other classes which code is fixed with 'courseNumberCode'
+            // fix this code (F25.101 = 초급중국어 1)
+            val courseNumberCode = "F25.101"
+            val seeAllOtherClasses = jdbc.queryForList(
+                """
+                select c.`courseNumber`, c.`classNumber`
+                from `course` c
+                where c.`courseNumber`=?           
+                """.trimIndent(),
+                courseNumberCode
+            )
+            println("Number of same classNumber = ${seeAllOtherClasses.size}\n")
+            seeAllOtherClasses.forEachIndexed { i, row ->
+                println(
+                    "courseNumber = ${row["courseNumber"]}, " +
+                    "classNumber = ${row["classNumber"]}\n"
+                )
+            }
+
+            // 2. see all classes through number code
+            val select = jdbc.queryForList(
+                """
+                select ct.`course_id`, ct.`weekday`, ct.`start_min`, ct.`end_min`, ct.`location`
+                from `course_time` ct
+                join `course` c on c.`id` = ct.`course_id`
+                where c.`courseNumber`=?
+                """.trimIndent(),
+                courseNumberCode
+            )
+
+            println("Number of selected course = ${select.size}\n")
+            select.forEachIndexed { i, row ->
+                println(
+                    "#$i -> course_id = ${row["course_id"]}, " +
+                    "weekday = ${row["weekday"]}, " +
+                    "start_min = ${row["start_min"]}, " +
+                    "end_min = ${row["end_min"]}, " +
+                    "location = ${row["location"]}\n"
+                )
+            }
         }
 
         @Test
