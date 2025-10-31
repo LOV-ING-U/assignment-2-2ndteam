@@ -580,6 +580,7 @@ class TimetableIntegrationTest
                     "start_min = ${row["start_min"]}, " +
                     "end_min = ${row["end_min"]}, " +
                     "location = ${row["location"]}\n"
+
                 )
             }
         }
