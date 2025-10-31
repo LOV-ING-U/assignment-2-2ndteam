@@ -10,16 +10,11 @@ import java.time.LocalDateTime
 @Table("timetables")
 class Timetable(
     @Id var id: Long? = null,
-    var userId: Long,
     var name: String,
     var year: Int,
     var semester: Semester,
     @Column("user_id")
     var userId: Long,
-    @CreatedDate
-    var createdAt: LocalDateTime? = null,
-    @LastModifiedDate
-    var updatedAt: LocalDateTime? = null,
 )
 
 enum class Semester {

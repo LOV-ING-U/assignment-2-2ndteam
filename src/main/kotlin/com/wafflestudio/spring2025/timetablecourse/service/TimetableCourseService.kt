@@ -1,24 +1,22 @@
 package com.wafflestudio.spring2025.timetablecourse.service
 
+import com.wafflestudio.spring2025.course.dto.course.CourseDto
+import com.wafflestudio.spring2025.course.dto.coursetime.CourseTimeDto
 import com.wafflestudio.spring2025.timetablecourse.TimetableNotFoundException
 import com.wafflestudio.spring2025.timetablecourse.CourseNotFoundException
 import com.wafflestudio.spring2025.timetablecourse.TimetableAccessDeniedException
 import com.wafflestudio.spring2025.timetablecourse.CourseTimeConflictException
 import com.wafflestudio.spring2025.timetablecourse.CourseNotInTimetableException
-
-import com.wafflestudio.spring2025.timetable.dto.core.TimetableDto
-import com.wafflestudio.spring2025.timetable.model.Timetable
-
 import com.wafflestudio.spring2025.user.model.User
 import com.wafflestudio.spring2025.timetable.repository.TimetableRepository
 import com.wafflestudio.spring2025.course.repository.CourseRepository
-import com.wafflestudio.spring2025.coursetime.repository.CourseTimeRepository
+import com.wafflestudio.spring2025.course.repository.CourseTimeRepository
 import com.wafflestudio.spring2025.timetablecourse.dto.core.TimetableCourseDto
+import com.wafflestudio.spring2025.timetablecourse.dto.core.TimetableDetailDto
 import com.wafflestudio.spring2025.timetablecourse.model.TimetableCourse
 import com.wafflestudio.spring2025.timetablecourse.repository.TimetableCourseRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.time.Instant
 
 @Service
 class TimetableCourseService(
@@ -37,15 +35,12 @@ class TimetableCourseService(
         val course = courseRepository.findByIdOrNull(courseId)
             ?: throw CourseNotFoundException()
         if (timetable.userId != user.id) TimetableAccessDeniedException()
-        if (timetableCourseRepository.existsByTimetableIdAndCourseId(timetableId, courseId)) {
-            throw CourseAlreadyExistsInTimetableException()
-        }
 
         // 시간 중복 검증
         val newTimes = courseTimeRepository.findByCourseId(courseId) // 새로 추가하려는 강의 시간
-        val existingCourseIds = timetableCourseRepository.findCourseIdsByTimetableId(timetableId)
+        val existingCourseIds = timetableCourseRepository.findByTimetableId(timetableId)
             .map { it.courseId }
-        val existingTimes = courseTimeRepository.findByCourseIds(existingCourseIds) // 기존 시간표에 있는 시간
+        val existingTimes = courseTimeRepository.findByCourseIdIn(existingCourseIds) // 기존 시간표에 있는 시간
 
         for (new in newTimes) {
             for (exist in existingTimes) {

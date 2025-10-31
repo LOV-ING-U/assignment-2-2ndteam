@@ -1,7 +1,5 @@
 package com.wafflestudio.spring2025.timetable.service
 
-// @TODO
-
 import com.wafflestudio.spring2025.timetable.TimetableNameBlankException
 import com.wafflestudio.spring2025.timetable.TimetableNameConflictException
 import com.wafflestudio.spring2025.timetable.TimetableNotFoundException

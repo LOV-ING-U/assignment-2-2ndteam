@@ -1,7 +1,5 @@
 package com.wafflestudio.spring2025.timetable.dto.core
 
-// @TODO
-
 import com.wafflestudio.spring2025.timetable.model.Timetable
 
 data class TimetableDto(
@@ -16,6 +14,4 @@ data class TimetableDto(
         year = timetable.year,
         semester = timetable.semester.name,
     )
-
-    // 아마, Comment model처럼 다른 생성자도 추가해야 할 수도....?
 }
