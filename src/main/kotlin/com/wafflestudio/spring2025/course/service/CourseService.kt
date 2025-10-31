@@ -15,7 +15,7 @@ class CourseService (
 ) {
     @Transactional(readOnly = true)
     fun search(request: SearchCourseRequest): SearchCourseResponse {
-        val limit = request.limit.coerceIn(1, 100)
+        val limit = request.limit
 
         if (request.semester.isBlank()) {
             throw CourseException.InvalidSemesterException()

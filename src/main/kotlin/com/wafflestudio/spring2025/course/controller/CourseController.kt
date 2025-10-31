@@ -19,7 +19,7 @@ class CourseController (
         @RequestParam year: Int,
         @RequestParam semester: String,
         @RequestParam keyword: String?,
-        @RequestParam limit: Int,
+        @RequestParam(defaultValue = "20") limit: Int,
         @RequestParam nextId: Long?
     ): ResponseEntity<SearchCourseResponse> {
         val request = SearchCourseRequest(
