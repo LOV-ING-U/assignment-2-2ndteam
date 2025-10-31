@@ -27,5 +27,5 @@ CREATE TABLE IF NOT EXISTS course_time(
     end_min INT NOT NULL,
     location VARCHAR(64) NULL,
 
-    CONSTRAINT fk_course_time_w_course FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
+    CONSTRAINT fk_course_time_w_course FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
