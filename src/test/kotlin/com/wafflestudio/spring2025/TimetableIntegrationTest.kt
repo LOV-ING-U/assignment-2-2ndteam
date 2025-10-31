@@ -15,6 +15,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
 import com.wafflestudio.spring2025.course.extract.repository.CourseTimeExtractRepository
 import com.wafflestudio.spring2025.course.model.Course
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -238,5 +239,119 @@ class TimetableIntegrationTest
         @Test
         fun `should paginate correctly when searching for courses`() {
             // 강의 검색 시, 페이지네이션이 올바르게 동작한다
+
+            val year = "2025"
+            val semester = "2"
+
+            for (i in 1..25) {
+                courseExtractRepository.save(
+                    com.wafflestudio.spring2025.course.model.Course(
+                        id = null,
+                        year = 2025,
+                        semester = "2",
+                        category = "교양",
+                        college = "학부대학",
+                        department = "학부대학",
+                        procedure = "학부",
+                        grade = 1,
+                        courseNumber = "F11.203",
+                        classNumber = "$i",
+                        title = "대학 글쓰기 $i",
+                        subtitle = "",
+                        credit = 2,
+                        professor = "교수 $i",
+                        room = "43-1-$i",
+                    )
+                )
+            }
+
+            courseExtractRepository.save(
+                com.wafflestudio.spring2025.course.model.Course(
+                    id = null,
+                    year = 2024,
+                    semester = "2",
+                    category = "교양",
+                    college = "학부대학",
+                    department = "학부대학",
+                    procedure = "학부",
+                    grade = 1,
+                    courseNumber = "F11.203",
+                    classNumber = "001",
+                    title = "대학 글쓰기 1",
+                    subtitle = "",
+                    credit = 2,
+                    professor = "교수",
+                    room = "43-1-101",
+                )
+            )
+
+            courseExtractRepository.save(
+                Course(
+                    id = null,
+                    year = 2025,
+                    semester = "2",
+                    category = "전필",
+                    college = "공과대학",
+                    department = "전기·정보공학부",
+                    procedure = "학사",
+                    grade = 2,
+                    courseNumber = "430.201A",
+                    classNumber = "003",
+                    title = "논리설계 및 실험",
+                    subtitle = "",
+                    credit = 4,
+                    professor = "최우석",
+                    room = "301-102(무선랜제공)/301-102(무선랜제공)/301-308(무선랜제공)",
+                ),
+            )
+
+            val res1 = mvc.perform(
+                get("/api/v1/courses")
+                    .param("year", year)
+                    .param("semester", semester)
+                    .param("query", "대학 글쓰기")
+                    .param("size", "10")
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.data.length()").value(10))
+                .andExpect(jsonPath("$.paging.hasNext").value(true))
+                .andExpect(jsonPath("$.paging.nextCursor").isNotEmpty)
+                .andReturn()
+
+            val next1 = com.jayway.jsonpath.JsonPath.read<String>(
+                res1.response.getContentAsString(), "$.paging.nextCursor"
+            )
+
+            val res2 = mvc.perform(
+                get("/api/v1/courses")
+                    .param("year", year)
+                    .param("semester", semester)
+                    .param("query", "대학 글쓰기")
+                    .param("size", "10")
+                    .param("cursor", next1)
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.data.length()").value(10))
+                .andExpect(jsonPath("$.paging.hasNext").value(true))
+                .andExpect(jsonPath("$.paging.nextCursor").isNotEmpty)
+                .andReturn()
+
+            val next2 = com.jayway.jsonpath.JsonPath.read<String>(
+                res2.response.getContentAsString(), "$.paging.nextCursor"
+            )
+
+            mvc.perform(
+                get("/api/v1/courses")
+                    .param("year", year)
+                    .param("semester", semester)
+                    .param("query", "대학 글쓰기")
+                    .param("size", "10")
+                    .param("cursor", next2)
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.data.length()").value(5))
+                .andExpect(jsonPath("$.paging.hasNext").value(false))
+                .andExpect(jsonPath("$.paging.nextCursor").doesNotExist())
+                .andReturn()
         }
     }
