@@ -9,7 +9,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.testcontainers.junit.jupiter.Testcontainers
+import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
+import com.wafflestudio.spring2025.course.extract.repository.CourseTimeExtractRepository
+import com.wafflestudio.spring2025.course.model.Course
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -21,6 +26,8 @@ class TimetableIntegrationTest
         private val mvc: MockMvc,
         private val mapper: ObjectMapper,
         private val dataGenerator: DataGenerator,
+        private val courseExtractRepository: CourseExtractRepository,
+        private val courseTimeExtractRepository: CourseTimeExtractRepository,
     ) {
         @Test
         fun `should create a timetable`() {
@@ -60,6 +67,136 @@ class TimetableIntegrationTest
         @Test
         fun `should search for courses`() {
             // 강의를 검색할 수 있다
+            val year = "2025"
+            val semester = "2"
+            val keyword = "전자"
+
+            // 키워드가 교수명에 포함되는 강의
+            courseExtractRepository.save(
+                Course(
+                    id = null,
+                    year = 2025,
+                    semester = "2",
+                    category = "전선",
+                    college = "사범대학",
+                    department = "사회교육과",
+                    procedure = "학사",
+                    grade = 4,
+                    courseNumber = "M1855.001800",
+                    classNumber = "001",
+                    title = "문화와 사회",
+                    subtitle = "",
+                    credit = 3,
+                    professor = "전자배",
+                    room = "11-108",
+                ),
+            )
+
+            // 키워드가 강의명에 포함되는 강의
+            courseExtractRepository.save(
+                Course(
+                    id = null,
+                    year = 2025,
+                    semester = "2",
+                    category = "전필",
+                    college = "공과대학",
+                    department = "전기·정보공학부",
+                    procedure = "학사",
+                    grade = 2,
+                    courseNumber = "430.202B",
+                    classNumber = "003",
+                    title = "기초전자기학 및 연습",
+                    subtitle = "",
+                    credit = 4,
+                    professor = "오정석",
+                    room = "301-102(무선랜제공)/301-207(무선랜제공)/301-102(무선랜제공)",
+                ),
+            )
+
+            // 키워드가 교수명과 강의명에 포함되지 않는 강의
+            courseExtractRepository.save(
+                Course(
+                    id = null,
+                    year = 2025,
+                    semester = "2",
+                    category = "전필",
+                    college = "공과대학",
+                    department = "전기·정보공학부",
+                    procedure = "학사",
+                    grade = 2,
+                    courseNumber = "430.201A",
+                    classNumber = "003",
+                    title = "논리설계 및 실험",
+                    subtitle = "",
+                    credit = 4,
+                    professor = "최우석",
+                    room = "301-102(무선랜제공)/301-102(무선랜제공)/301-308(무선랜제공)",
+                ),
+            )
+
+            // 연, 학기가 다른 강의
+            courseExtractRepository.save(
+                Course(
+                    id = null,
+                    year = 2024,
+                    semester = "2",
+                    category = "전필",
+                    college = "공과대학",
+                    department = "전기·정보공학부",
+                    procedure = "학사",
+                    grade = 2,
+                    courseNumber = "430.202B",
+                    classNumber = "003",
+                    title = "기초전자기학및연습",
+                    subtitle = "",
+                    credit = 4,
+                    professor = "오정석",
+                    room = "301-102(무선랜제공)/301-207(무선랜제공)/301-102(무선랜제공)",
+                ),
+            )
+
+            // 연, 학기가 다른 강의
+            courseExtractRepository.save(
+                Course(
+                    id = null,
+                    year = 2024,
+                    semester = "2",
+                    category = "전선",
+                    college = "사범대학",
+                    department = "사회교육과",
+                    procedure = "학사",
+                    grade = 4,
+                    courseNumber = "M1855.001800",
+                    classNumber = "001",
+                    title = "문화와사회",
+                    subtitle = "",
+                    credit = 3,
+                    professor = "전자배",
+                    room = "11-108",
+                ),
+            )
+
+            val mvcResult = mvc.perform(
+                get("/api/v1/courses")
+                    .param("year", year)
+                    .param("semester", semester)
+                    .param("query", keyword)
+            ).andExpect(status().isOk)
+                .andReturn()
+
+            val response = mvcResult.response.getContentAsString()
+
+            if (!response.contains("기초전자기학 및 연습")) {
+                throw Exception("조건에 해당하는 강의가 검색되지 않았습니다.")
+            }
+            if (!response.contains("문화와 사회")) {
+                throw Exception("조건에 해당하는 강의가 검색되지 않았습니다.")
+            }
+
+            val count = response.split("\"title\"").size - 1
+            if (count != 2) {
+                throw Exception("조건에 해당하지 않는 강의가 검색되었습니다.")
+            }
         }
 
         @Test
