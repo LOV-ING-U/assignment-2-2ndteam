@@ -3,8 +3,9 @@ package com.wafflestudio.spring2025.timetable.model
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
-import java.time.Instant
+import java.time.LocalDateTime
 
 @Table("timetables")
 class Timetable(
@@ -12,9 +13,18 @@ class Timetable(
     var userId: Long,
     var name: String,
     var year: Int,
-    var semester: String,
+    var semester: Semester,
+    @Column("user_id")
+    var userId: Long,
     @CreatedDate
-    var createdAt: Instant? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
-    var updatedAt: Instant? = null,
+    var updatedAt: LocalDateTime? = null,
 )
+
+enum class Semester {
+    SPRING,
+    SUMMER,
+    FALL,
+    WINTER,
+}
