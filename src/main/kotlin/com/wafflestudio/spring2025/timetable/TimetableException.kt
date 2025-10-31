@@ -6,30 +6,37 @@ import org.springframework.http.HttpStatusCode
 
 // @TODO
 
-sealed class BoardException(
+sealed class TimetableException(
     errorCode: Int,
     httpStatusCode: HttpStatusCode,
     msg: String,
     cause: Throwable? = null,
 ) : DomainException(errorCode, httpStatusCode, msg, cause)
 
-class BoardNotFoundException :
-    BoardException(
+class TimetableNotFoundException :
+    TimetableException(
         errorCode = 0,
         httpStatusCode = HttpStatus.NOT_FOUND,
-        msg = "Board not found",
+        msg = "Timetable not found",
     )
 
-class BoardNameBlankException :
-    BoardException(
+class TimetableNameBlankException :
+    TimetableException(
         errorCode = 0,
         httpStatusCode = HttpStatus.BAD_REQUEST,
-        msg = "Board name is blank",
+        msg = "Timetable name is blank",
     )
 
-class BoardNameConflictException :
-    BoardException(
+class TimetableNameConflictException :
+    TimetableException(
         errorCode = 0,
         httpStatusCode = HttpStatus.CONFLICT,
-        msg = "Board name already exists",
+        msg = "Timetable name already exists",
+    )
+
+class TimetableUpdateForbiddenException :
+    TimetableException(
+        errorCode = 0,
+        httpStatusCode = HttpStatus.FORBIDDEN,
+        msg = "You are not allowed to modify or delete this timetable",
     )
