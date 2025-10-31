@@ -1,7 +1,5 @@
 package com.wafflestudio.spring2025.timetable.repository
 
-// @TODO
-
 import com.wafflestudio.spring2025.timetable.model.Timetable
 import org.springframework.data.repository.ListCrudRepository
 

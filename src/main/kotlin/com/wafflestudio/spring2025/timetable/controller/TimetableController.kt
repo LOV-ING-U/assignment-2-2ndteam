@@ -27,15 +27,15 @@ class TimetableController(
 ) {
     @PostMapping
     fun create(
-        @LoggedInUser user: User,
         @RequestBody createRequest: CreateTimetableRequest,
+        @LoggedInUser user: User,
     ): ResponseEntity<CreateTimetableResponse> {
         val timetable =
             timetableService.create(
-                user = user,
                 name = createRequest.name,
                 year = createRequest.year,
                 semester = createRequest.semester,
+                user = user,
             )
         return ResponseEntity.ok(timetable)
     }

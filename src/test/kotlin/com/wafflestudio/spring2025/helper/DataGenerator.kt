@@ -16,6 +16,17 @@ import org.mindrot.jbcrypt.BCrypt
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 
+// @TODO:
+/* fun generateTimetable(user: User): Timetable
+fun generateCourse(
+    credit: Int = 3,
+    weekday: Int = 1,
+    startMin: Int = 600,
+    endMin: Int = 660,
+): Course
+fun addCourseToTimetable(timetable: Timetable, course: Course) */
+// 이런 식의 timetable, course 생성 함수가 있어야 함.
+
 @Component
 class DataGenerator(
     private val userRepository: UserRepository,
