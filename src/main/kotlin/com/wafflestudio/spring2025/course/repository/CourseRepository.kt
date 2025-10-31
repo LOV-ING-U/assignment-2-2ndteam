@@ -9,7 +9,7 @@ interface CourseRepository : CrudRepository<Course, Long> {
 
     @Query("""
         SELECT c.id
-        FROM course c
+        FROM courses c
         WHERE c.year = :year
             AND c.semester = :semester
             AND (
@@ -29,6 +29,6 @@ interface CourseRepository : CrudRepository<Course, Long> {
         @Param("limit") limit: Int
     ): List<Long>
 
-    @Query("SELECT * FROM course WHERE id IN (:ids)")
+    @Query("SELECT * FROM courses WHERE id IN (:ids)")
     fun findByIds(@Param("ids") ids: List<Long>): List<Course>
 }

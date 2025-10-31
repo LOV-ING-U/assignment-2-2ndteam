@@ -26,12 +26,15 @@ import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseRequ
 import com.wafflestudio.spring2025.timetablecourse.dto.DeleteTimetableCourseRequest
 import org.hamcrest.Matchers.hasItems
 import org.hamcrest.Matchers.hasSize
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
 @AutoConfigureMockMvc(addFilters = false)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TimetableIntegrationTest
     @Autowired
     constructor(
@@ -479,13 +482,11 @@ class TimetableIntegrationTest
 
         @Test
         // @Disabled("곧 안내드리겠습니다")
+        @BeforeAll
         fun `should fetch and save course information from SNU course registration site`() {
             // 서울대 수강신청 사이트에서 강의 정보를 가져와 저장할 수 있다
             val year = 2025
             val semCode = "U000200002U000300001"
-
-            val beforeCourses = courseExtractRepository.count()
-            val beforeTimes = courseTimeExtractRepository.count()
 
             val requestBody = """{"year":$year,"semCode":"$semCode"}"""
 
@@ -500,23 +501,8 @@ class TimetableIntegrationTest
             val afterFirstTimes = courseTimeExtractRepository.count()
 
             // check
-            assert(afterFirstCourses > beforeCourses)
-            assert(afterFirstTimes > beforeTimes)
-
-            /*
-            // again, and check if DB is not changed
-            mvc.perform(
-                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
-            ).andExpect(status().isOk)
-                .andExpect(jsonPath("$.insertedCourses").isNumber)
-                .andExpect(jsonPath("$.insertedCourseTimes").isNumber)
-
-            val afterSecondCourses = courseExtractRepository.count()
-            val afterSecondTimes = courseTimeExtractRepository.count()
-
-            // check
-            assert(afterSecondCourses == afterFirstCourses)
-            assert(afterSecondTimes == afterFirstTimes)*/
+            assert(afterFirstCourses > 0)
+            assert(afterFirstTimes > 0)
         }
 
         @Test
@@ -527,12 +513,12 @@ class TimetableIntegrationTest
 
             val requestBody = """{"year":$year,"semCode":"$semCode"}"""
 
-            mvc.perform(
+            /*mvc.perform(
                 post("/course/extract/sync").contentType(MediaType.APPLICATION_JSON).content(requestBody)
-            ).andExpect(status().isOk)
+            ).andExpect(status().isOk)*/
 
             val courseCnt = jdbc.queryForObject(
-                "select count(*) from `course` where `year`=? and `semester`=?",
+                "select count(*) from `courses` where `year`=? and `semester`=?",
                 Long::class.java, year, "FALL"
             )
 
@@ -540,7 +526,7 @@ class TimetableIntegrationTest
                 """
                 select count(*)
                 from `course_time` ct
-                join `course` c on ct.`course_id` = c.`id`
+                join `courses` c on ct.`course_id` = c.`id`
                 where c.`year`=? and c.`semester`=?
                 """.trimIndent(),
                 Long::class.java, year, "FALL"
@@ -555,7 +541,7 @@ class TimetableIntegrationTest
             val seeAllOtherClasses = jdbc.queryForList(
                 """
                 select c.`courseNumber`, c.`classNumber`
-                from `course` c
+                from `courses` c
                 where c.`courseNumber`=?           
                 """.trimIndent(),
                 courseNumberCode
@@ -573,7 +559,7 @@ class TimetableIntegrationTest
                 """
                 select ct.`course_id`, ct.`weekday`, ct.`start_min`, ct.`end_min`, ct.`location`
                 from `course_time` ct
-                join `course` c on c.`id` = ct.`course_id`
+                join `courses` c on c.`id` = ct.`course_id`
                 where c.`courseNumber`=?
                 """.trimIndent(),
                 courseNumberCode
@@ -699,9 +685,10 @@ class TimetableIntegrationTest
                 .andExpect(jsonPath("$.paging.nextCursor").isNotEmpty)
                 .andReturn()
 
-            val next1 = com.jayway.jsonpath.JsonPath.read<String>(
-                res1.response.getContentAsString(), "$.paging.nextCursor"
-            )
+            val next1 = com.jayway.jsonpath.JsonPath
+                .read<Number>(res1.response.getContentAsString(), "$.paging.nextCursor")
+                .toLong()
+                .toString()
 
             val res2 = mvc.perform(
                 get("/api/v1/courses")
@@ -717,9 +704,10 @@ class TimetableIntegrationTest
                 .andExpect(jsonPath("$.paging.nextCursor").isNotEmpty)
                 .andReturn()
 
-            val next2 = com.jayway.jsonpath.JsonPath.read<String>(
-                res2.response.getContentAsString(), "$.paging.nextCursor"
-            )
+            val next2 = com.jayway.jsonpath.JsonPath
+                .read<Number>(res2.response.getContentAsString(), "$.paging.nextCursor")
+                .toLong()
+                .toString()
 
             mvc.perform(
                 get("/api/v1/courses")

@@ -18,9 +18,9 @@ class CourseController (
     fun search(
         @RequestParam year: Int,
         @RequestParam semester: String,
-        @RequestParam keyword: String?,
-        @RequestParam(defaultValue = "20") limit: Int,
-        @RequestParam nextId: Long?
+        @RequestParam(name = "query", required = false) keyword: String?,
+        @RequestParam(name = "size", defaultValue = "20") limit: Int,
+        @RequestParam(name = "cursor", required = false) nextId: Long?
     ): ResponseEntity<SearchCourseResponse> {
         val request = SearchCourseRequest(
             year = year,
