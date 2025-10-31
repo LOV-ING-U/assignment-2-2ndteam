@@ -130,7 +130,7 @@ class TimetableCourseService(
             ?: throw TimetableNotFoundException()
         val course = courseRepository.findByIdOrNull(courseId)
             ?: throw CourseNotFoundException()
-        if (timetable.userId != user.id) TimetableAccessDeniedException()
+        if (timetable.userId != user.id) throw TimetableAccessDeniedException()
         if (!timetableCourseRepository.existsByTimetableIdAndCourseId(timetableId, courseId)) {
             throw CourseNotInTimetableException()
         }

@@ -25,6 +25,15 @@ import org.springframework.web.bind.annotation.RestController
 class TimetableController(
     private val timetableService: TimetableService,
 ) {
+    @GetMapping("/{id}")
+    fun get(
+        @PathVariable id: Long,
+        @LoggedInUser user: User
+    ): ResponseEntity<TimetableDto> {
+        val dto = timetableService.detail(id, user)
+        return ResponseEntity.ok(dto)
+    }
+
     @PostMapping
     fun create(
         @RequestBody createRequest: CreateTimetableRequest,
