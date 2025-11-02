@@ -7,17 +7,19 @@ import org.springframework.http.HttpStatusCode
 open class CourseException(
     errorCode: Int,
     httpStatusCode: HttpStatusCode,
-    msg: String
+    msg: String,
 ) : DomainException(errorCode, httpStatusCode, msg) {
-    class InvalidSemesterException : CourseException(
-        errorCode = 0,
-        httpStatusCode = HttpStatus.BAD_REQUEST,
-        msg = "Invalid semester"
-    )
+    class InvalidSemesterException :
+        CourseException(
+            errorCode = 0,
+            httpStatusCode = HttpStatus.BAD_REQUEST,
+            msg = "Invalid semester",
+        )
 
-    class CourseNotFoundException : CourseException(
-        errorCode = 0,
-        httpStatusCode = HttpStatus.NOT_FOUND,
-        msg = "Course not found"
-    )
+    class CourseNotFoundException :
+        CourseException(
+            errorCode = 0,
+            httpStatusCode = HttpStatus.NOT_FOUND,
+            msg = "Course not found",
+        )
 }

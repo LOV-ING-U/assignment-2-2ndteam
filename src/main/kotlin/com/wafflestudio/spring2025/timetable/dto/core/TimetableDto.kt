@@ -1,6 +1,5 @@
 package com.wafflestudio.spring2025.timetable.dto.core
 
-import com.wafflestudio.spring2025.timetable.model.Semester
 import com.wafflestudio.spring2025.timetable.model.Timetable
 
 data class TimetableDto(
