@@ -1,6 +1,12 @@
 package com.wafflestudio.spring2025.timetablecourse.dto
 
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Column
+import org.springframework.data.relational.core.mapping.Table
+
+@Table("timetable_course")
 data class CreateTimetableCourseRequest(
-    val timetableId: Long,
-    val courseId: Long,
+    @Id val id: Long? = null,
+    @Column("timetable_id") val timetableId: Long,
+    @Column("course_id") val courseId: Long,
 )

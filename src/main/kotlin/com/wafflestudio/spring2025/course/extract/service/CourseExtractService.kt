@@ -101,10 +101,10 @@ class CourseExtractService(
     ): CourseSyncResultDto {
         val bytes = sugangFetchService.fetchXls(year, semCode)
 
-        jdbcTemplate.update("DELETE FROM course_time WHERE course_id IN (SELECT id FROM course WHERE year=? AND semester=?)",
+        jdbcTemplate.update("DELETE FROM course_time WHERE course_id IN (SELECT id FROM courses WHERE year=? AND semester=?)",
             year, "FALL")
 
-        jdbcTemplate.update("DELETE FROM course WHERE year=? AND semester=?",
+        jdbcTemplate.update("DELETE FROM courses WHERE year=? AND semester=?",
             year, "FALL")
 
         val insertedCourses = bytes.inputStream().use {

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS timetables(
 );
 
 CREATE TABLE IF NOT EXISTS timetable_course(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     timetable_id BIGINT NOT NULL,
     course_id BIGINT NOT NULL,
 

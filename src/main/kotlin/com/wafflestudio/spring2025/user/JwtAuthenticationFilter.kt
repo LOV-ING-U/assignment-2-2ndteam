@@ -48,6 +48,8 @@ class JwtAuthenticationFilter(
                 pathMatcher.match("/swagger-ui.html", path) ||
                 pathMatcher.match("/swagger-ui/**", path) ||
                 pathMatcher.match("/api-docs", path) ||
-                pathMatcher.match("/api-docs/**", path)
+                pathMatcher.match("/api-docs/**", path) ||
+                pathMatcher.match("/course/extract/**", path) ||
+                pathMatcher.match("/api/v1/courses/**", path)
     }
 }

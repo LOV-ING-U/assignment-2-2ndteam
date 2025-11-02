@@ -8,6 +8,8 @@ import com.wafflestudio.spring2025.timetable.dto.ListTimetableResponse
 import com.wafflestudio.spring2025.timetable.dto.UpdateTimetableRequest
 import com.wafflestudio.spring2025.timetable.dto.core.TimetableDto
 import com.wafflestudio.spring2025.timetable.service.TimetableService
+import com.wafflestudio.spring2025.timetablecourse.dto.core.TimetableDetailDto
+import com.wafflestudio.spring2025.timetablecourse.service.TimetableCourseService
 import com.wafflestudio.spring2025.user.LoggedInUser
 import com.wafflestudio.spring2025.user.model.User
 import org.springframework.http.ResponseEntity
@@ -24,7 +26,17 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/timetables")
 class TimetableController(
     private val timetableService: TimetableService,
+    private val timetableCourseService: TimetableCourseService
 ) {
+    @GetMapping("/{id}")
+    fun get(
+        @PathVariable id: Long,
+        @LoggedInUser user: User
+    ): ResponseEntity<TimetableDetailDto> {
+        val dto = timetableCourseService.getTimetableDetail(id, user)
+        return ResponseEntity.ok(dto)
+    }
+
     @PostMapping
     fun create(
         @RequestBody createRequest: CreateTimetableRequest,

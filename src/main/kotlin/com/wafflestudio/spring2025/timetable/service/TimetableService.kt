@@ -11,6 +11,7 @@ import com.wafflestudio.spring2025.timetable.repository.TimetableRepository
 import com.wafflestudio.spring2025.user.model.User
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 @Service
@@ -96,5 +97,19 @@ class TimetableService(
         // TODO : lectureRepository.deleteByTimetableId(timetableId)
 
         timetableRepository.delete(timetable)
+    }
+
+    @Transactional(readOnly = true)
+    fun detail(
+        timetableId: Long,
+        user: User
+    ): TimetableDto {
+        val timetable = timetableRepository.findByIdOrNull(timetableId) ?: throw TimetableNotFoundException()
+
+        if(timetable.userId != user.id) {
+            throw TimetableUpdateForbiddenException()
+        }
+
+        return TimetableDto(timetable)
     }
 }

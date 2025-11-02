@@ -26,16 +26,23 @@ class CourseService (
             semester = request.semester.trim(),
             keyword = request.keyword?.trim(),
             nextId = request.nextId,
-            limit = limit
+            limit = limit + 1
         )
         if (ids.isEmpty()) {
-            return SearchCourseResponse(emptyList(), null)
+            return SearchCourseResponse(
+                data = emptyList(),
+                paging = Paging(hasNext = false, nextCursor = null)
+            )
         }
 
-        val courseMap = courseRepository.findByIds(ids).associateBy { it.id!! }
-        val timeMap = courseTimeRepository.findByCourseIdIn(ids).groupBy { it.courseId }
+        val hasNext = ids.size > limit
+        val pageIds = if(hasNext) ids.take(limit) else ids
+        val nextCursor = if(hasNext) pageIds.last() else null
 
-        val items = ids.mapNotNull {
+        val courseMap = courseRepository.findByIds(pageIds).associateBy { it.id!! }
+        val timeMap = courseTimeRepository.findByCourseIdIn(pageIds).groupBy { it.courseId }
+
+        val data = pageIds.mapNotNull {
             id ->
             val c = courseMap[id] ?: return@mapNotNull null
             val times = (timeMap[id] ?: emptyList()).map {
@@ -52,7 +59,9 @@ class CourseService (
             )
         }
 
-        val nextId = ids.lastOrNull()
-        return SearchCourseResponse(items = items, nextId = nextId)
+        return SearchCourseResponse(
+            data = data,
+            paging = Paging(hasNext = hasNext, nextCursor = nextCursor)
+        )
     }
 }

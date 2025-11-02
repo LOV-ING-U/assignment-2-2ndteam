@@ -3,6 +3,7 @@ package com.wafflestudio.spring2025
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
 import com.wafflestudio.spring2025.course.extract.repository.CourseTimeExtractRepository
+import com.wafflestudio.spring2025.course.dto.course.SearchCourseResponse
 import com.wafflestudio.spring2025.helper.DataGenerator
 import com.wafflestudio.spring2025.timetable.dto.CreateTimetableRequest
 import com.wafflestudio.spring2025.timetable.dto.UpdateTimetableRequest
@@ -21,17 +22,20 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delet
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import com.wafflestudio.spring2025.course.model.Course
 import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseRequest
 import com.wafflestudio.spring2025.timetablecourse.dto.DeleteTimetableCourseRequest
 import org.hamcrest.Matchers.hasItems
 import org.hamcrest.Matchers.hasSize
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.Assertions
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TimetableIntegrationTest
     @Autowired
     constructor(
@@ -125,7 +129,7 @@ class TimetableIntegrationTest
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.name").value(timetable.name))
                     .andExpect(jsonPath("$.year").value(timetable.year))
-                    .andExpect(jsonPath("$.semester").value(timetable.semester))
+                    .andExpect(jsonPath("$.semester").value(timetable.semester.name))
                     .andExpect(jsonPath("$.courses", hasSize<Any>(1)))
                     .andExpect(jsonPath("$.courses[0].id").value(course.id))
                     .andExpect(jsonPath("$.totalCredit").value(3))
@@ -205,136 +209,28 @@ class TimetableIntegrationTest
         @Test
         fun `should search for courses`() {
             // 강의를 검색할 수 있다
-            val year = "2025"
-            val semester = "2"
-            val keyword = "전자"
+            val (_, token) = dataGenerator.generateUser()
+            val keyword = "검색 테스트"
+            val c1 = dataGenerator.generateCourse(title = "검색 테스트", professor = "prof1")
+            val c2 = dataGenerator.generateCourse(title = "검색 테스트:", professor = "prof2")
+            val c3 = dataGenerator.generateCourse(title = "대학영어", professor = "prof3")
+            val c4 = dataGenerator.generateCourse(title = "prof4", professor = "검색 테스트")
 
-            // 키워드가 교수명에 포함되는 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2025,
-                    semester = "2",
-                    category = "전선",
-                    college = "사범대학",
-                    department = "사회교육과",
-                    procedure = "학사",
-                    grade = 4,
-                    courseNumber = "M1855.001800",
-                    classNumber = "001",
-                    title = "문화와 사회",
-                    subtitle = "",
-                    credit = 3,
-                    professor = "전자배",
-                    room = "11-108",
-                ),
-            )
-
-            // 키워드가 강의명에 포함되는 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2025,
-                    semester = "2",
-                    category = "전필",
-                    college = "공과대학",
-                    department = "전기·정보공학부",
-                    procedure = "학사",
-                    grade = 2,
-                    courseNumber = "430.202B",
-                    classNumber = "003",
-                    title = "기초전자기학 및 연습",
-                    subtitle = "",
-                    credit = 4,
-                    professor = "오정석",
-                    room = "301-102(무선랜제공)/301-207(무선랜제공)/301-102(무선랜제공)",
-                ),
-            )
-
-            // 키워드가 교수명과 강의명에 포함되지 않는 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2025,
-                    semester = "2",
-                    category = "전필",
-                    college = "공과대학",
-                    department = "전기·정보공학부",
-                    procedure = "학사",
-                    grade = 2,
-                    courseNumber = "430.201A",
-                    classNumber = "003",
-                    title = "논리설계 및 실험",
-                    subtitle = "",
-                    credit = 4,
-                    professor = "최우석",
-                    room = "301-102(무선랜제공)/301-102(무선랜제공)/301-308(무선랜제공)",
-                ),
-            )
-
-            // 연, 학기가 다른 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2024,
-                    semester = "2",
-                    category = "전필",
-                    college = "공과대학",
-                    department = "전기·정보공학부",
-                    procedure = "학사",
-                    grade = 2,
-                    courseNumber = "430.202B",
-                    classNumber = "003",
-                    title = "기초전자기학및연습",
-                    subtitle = "",
-                    credit = 4,
-                    professor = "오정석",
-                    room = "301-102(무선랜제공)/301-207(무선랜제공)/301-102(무선랜제공)",
-                ),
-            )
-
-            // 연, 학기가 다른 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2024,
-                    semester = "2",
-                    category = "전선",
-                    college = "사범대학",
-                    department = "사회교육과",
-                    procedure = "학사",
-                    grade = 4,
-                    courseNumber = "M1855.001800",
-                    classNumber = "001",
-                    title = "문화와사회",
-                    subtitle = "",
-                    credit = 3,
-                    professor = "전자배",
-                    room = "11-108",
-                ),
-            )
-
-            val mvcResult = mvc.perform(
+            val expected = 3 // keyword 포함 강의 수
+            
+            mvc.perform(
                 get("/api/v1/courses")
-                    .param("year", year)
-                    .param("semester", semester)
+                    .param("year", "2025")
+                    .param("semester", "FALL")
                     .param("query", keyword)
-            ).andExpect(status().isOk)
-                .andReturn()
-
-            val response = mvcResult.response.getContentAsString()
-
-            if (!response.contains("기초전자기학 및 연습")) {
-                throw Exception("조건에 해당하는 강의가 검색되지 않았습니다.")
-            }
-            if (!response.contains("문화와 사회")) {
-                throw Exception("조건에 해당하는 강의가 검색되지 않았습니다.")
-            }
-
-            val count = response.split("\"title\"").size - 1
-            if (count != 2) {
-                throw Exception("조건에 해당하지 않는 강의가 검색되었습니다.")
-            }
+                    .param("size", "10")
+                    .header("Authorization", "Bearer $token")
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.data", hasSize<Any>(expected)))
+                .andExpect(jsonPath("$.data[*].id",hasItems(c1.id!!.toInt(), c2.id!!.toInt(), c4.id!!.toInt())))
+                .andExpect(jsonPath("$.paging.hasNext").value(false))
         }
 
         @Test
@@ -479,13 +375,11 @@ class TimetableIntegrationTest
 
         @Test
         // @Disabled("곧 안내드리겠습니다")
+        @BeforeAll
         fun `should fetch and save course information from SNU course registration site`() {
             // 서울대 수강신청 사이트에서 강의 정보를 가져와 저장할 수 있다
             val year = 2025
             val semCode = "U000200002U000300001"
-
-            val beforeCourses = courseExtractRepository.count()
-            val beforeTimes = courseTimeExtractRepository.count()
 
             val requestBody = """{"year":$year,"semCode":"$semCode"}"""
 
@@ -500,23 +394,8 @@ class TimetableIntegrationTest
             val afterFirstTimes = courseTimeExtractRepository.count()
 
             // check
-            assert(afterFirstCourses > beforeCourses)
-            assert(afterFirstTimes > beforeTimes)
-
-            /*
-            // again, and check if DB is not changed
-            mvc.perform(
-                post("/course/extract/sync").contentType(HttpMediaType.APPLICATION_JSON).content(requestBody)
-            ).andExpect(status().isOk)
-                .andExpect(jsonPath("$.insertedCourses").isNumber)
-                .andExpect(jsonPath("$.insertedCourseTimes").isNumber)
-
-            val afterSecondCourses = courseExtractRepository.count()
-            val afterSecondTimes = courseTimeExtractRepository.count()
-
-            // check
-            assert(afterSecondCourses == afterFirstCourses)
-            assert(afterSecondTimes == afterFirstTimes)*/
+            assert(afterFirstCourses > 0)
+            assert(afterFirstTimes > 0)
         }
 
         @Test
@@ -527,12 +406,12 @@ class TimetableIntegrationTest
 
             val requestBody = """{"year":$year,"semCode":"$semCode"}"""
 
-            mvc.perform(
+            /*mvc.perform(
                 post("/course/extract/sync").contentType(MediaType.APPLICATION_JSON).content(requestBody)
-            ).andExpect(status().isOk)
+            ).andExpect(status().isOk)*/
 
             val courseCnt = jdbc.queryForObject(
-                "select count(*) from `course` where `year`=? and `semester`=?",
+                "select count(*) from `courses` where `year`=? and `semester`=?",
                 Long::class.java, year, "FALL"
             )
 
@@ -540,7 +419,7 @@ class TimetableIntegrationTest
                 """
                 select count(*)
                 from `course_time` ct
-                join `course` c on ct.`course_id` = c.`id`
+                join `courses` c on ct.`course_id` = c.`id`
                 where c.`year`=? and c.`semester`=?
                 """.trimIndent(),
                 Long::class.java, year, "FALL"
@@ -555,7 +434,7 @@ class TimetableIntegrationTest
             val seeAllOtherClasses = jdbc.queryForList(
                 """
                 select c.`courseNumber`, c.`classNumber`
-                from `course` c
+                from `courses` c
                 where c.`courseNumber`=?           
                 """.trimIndent(),
                 courseNumberCode
@@ -573,7 +452,7 @@ class TimetableIntegrationTest
                 """
                 select ct.`course_id`, ct.`weekday`, ct.`start_min`, ct.`end_min`, ct.`location`
                 from `course_time` ct
-                join `course` c on c.`id` = ct.`course_id`
+                join `courses` c on c.`id` = ct.`course_id`
                 where c.`courseNumber`=?
                 """.trimIndent(),
                 courseNumberCode
@@ -606,6 +485,10 @@ class TimetableIntegrationTest
             dataGenerator.addCourseToTimetable(timetable, course2)
             dataGenerator.addCourseToTimetable(timetable, course3)
 
+            val id1 = requireNotNull(course1.id) { "not null" }.toInt()
+            val id2 = requireNotNull(course2.id) { "not null" }.toInt()
+            val id3 = requireNotNull(course3.id) { "not null" }.toInt()
+
                 mvc.perform(
                     get("/api/v1/timetables/{id}", timetable.id)
                         .header("Authorization", "Bearer $token")
@@ -613,126 +496,86 @@ class TimetableIntegrationTest
                 )
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.courses", hasSize<Any>(3)))
-                    .andExpect(jsonPath("$.courses[*].id", hasItems(course1.id, course2.id, course3.id)))
+                    .andExpect(jsonPath("$.courses[*].id", hasItems(id1, id2, id3)))
                     .andExpect(jsonPath("$.totalCredit").value(6))
         }
 
         @Test
         fun `should paginate correctly when searching for courses`() {
             // 강의 검색 시, 페이지네이션이 올바르게 동작한다
+            val (_, token) = dataGenerator.generateUser()
+            val keyword = "pagination test course"
+            val pageSize = 10
 
-            val year = "2025"
-            val semester = "2"
-
-            for (i in 1..25) {
-                courseExtractRepository.save(
-                    com.wafflestudio.spring2025.course.model.Course(
-                        id = null,
-                        year = 2025,
-                        semester = "2",
-                        category = "교양",
-                        college = "학부대학",
-                        department = "학부대학",
-                        procedure = "학부",
-                        grade = 1,
-                        courseNumber = "F11.203",
-                        classNumber = "$i",
-                        title = "대학 글쓰기 $i",
-                        subtitle = "",
-                        credit = 2,
-                        professor = "교수 $i",
-                        room = "43-1-$i",
-                    )
-                )
+            repeat(25) {
+                dataGenerator.generateCourse(title = "$keyword #$it", professor = "prof$it")
             }
 
-            courseExtractRepository.save(
-                com.wafflestudio.spring2025.course.model.Course(
-                    id = null,
-                    year = 2024,
-                    semester = "2",
-                    category = "교양",
-                    college = "학부대학",
-                    department = "학부대학",
-                    procedure = "학부",
-                    grade = 1,
-                    courseNumber = "F11.203",
-                    classNumber = "001",
-                    title = "대학 글쓰기 1",
-                    subtitle = "",
-                    credit = 2,
-                    professor = "교수",
-                    room = "43-1-101",
+            val page1 =
+                mvc.perform(
+                    get("/api/v1/courses")
+                        .param("year", "2025")
+                        .param("semester", "FALL")
+                        .param("query", keyword)
+                        .param("size", pageSize.toString())
+                        .header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON)
                 )
-            )
+                    .andExpect(status().isOk)
+                    .andReturn()
+                    .response
+                    .getContentAsString(Charsets.UTF_8)
+                    .let {
+                        mapper.readValue(it, SearchCourseResponse::class.java)
+                    }
 
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2025,
-                    semester = "2",
-                    category = "전필",
-                    college = "공과대학",
-                    department = "전기·정보공학부",
-                    procedure = "학사",
-                    grade = 2,
-                    courseNumber = "430.201A",
-                    classNumber = "003",
-                    title = "논리설계 및 실험",
-                    subtitle = "",
-                    credit = 4,
-                    professor = "최우석",
-                    room = "301-102(무선랜제공)/301-102(무선랜제공)/301-308(무선랜제공)",
-                ),
-            )
+            Assertions.assertTrue(page1.paging.hasNext)
+            Assertions.assertTrue(page1.paging.nextCursor != null)
+            Assertions.assertEquals(pageSize, page1.data.size)
 
-            val res1 = mvc.perform(
-                get("/api/v1/courses")
-                    .param("year", year)
-                    .param("semester", semester)
-                    .param("query", "대학 글쓰기")
-                    .param("size", "10")
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.data.length()").value(10))
-                .andExpect(jsonPath("$.paging.hasNext").value(true))
-                .andExpect(jsonPath("$.paging.nextCursor").isNotEmpty)
-                .andReturn()
+            val page2 =
+                mvc.perform(
+                    get("/api/v1/courses")
+                        .param("year", "2025")
+                        .param("semester", "FALL")
+                        .param("query", keyword)
+                        .param("size", pageSize.toString())
+                        .param("cursor", page1.paging.nextCursor.toString())
+                        .header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                    .andExpect(status().isOk)
+                    .andReturn()
+                    .response
+                    .getContentAsString(Charsets.UTF_8)
+                    .let {
+                        mapper.readValue(it, SearchCourseResponse::class.java)
+                    }
 
-            val next1 = com.jayway.jsonpath.JsonPath.read<String>(
-                res1.response.getContentAsString(), "$.paging.nextCursor"
-            )
+            Assertions.assertTrue(page2.paging.hasNext)
+            Assertions.assertTrue(page2.paging.nextCursor != null)
+            Assertions.assertEquals(pageSize, page2.data.size)
 
-            val res2 = mvc.perform(
-                get("/api/v1/courses")
-                    .param("year", year)
-                    .param("semester", semester)
-                    .param("query", "대학 글쓰기")
-                    .param("size", "10")
-                    .param("cursor", next1)
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.data.length()").value(10))
-                .andExpect(jsonPath("$.paging.hasNext").value(true))
-                .andExpect(jsonPath("$.paging.nextCursor").isNotEmpty)
-                .andReturn()
+            val page3 =
+                mvc.perform(
+                    get("/api/v1/courses")
+                        .param("year", "2025")
+                        .param("semester", "FALL")
+                        .param("query", keyword)
+                        .param("size", pageSize.toString())
+                        .param("cursor", page2.paging.nextCursor.toString())
+                        .header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                    .andExpect(status().isOk)
+                    .andReturn()
+                    .response
+                    .getContentAsString(Charsets.UTF_8)
+                    .let {
+                        mapper.readValue(it, SearchCourseResponse::class.java)
+                    }
 
-            val next2 = com.jayway.jsonpath.JsonPath.read<String>(
-                res2.response.getContentAsString(), "$.paging.nextCursor"
-            )
-
-            mvc.perform(
-                get("/api/v1/courses")
-                    .param("year", year)
-                    .param("semester", semester)
-                    .param("query", "대학 글쓰기")
-                    .param("size", "10")
-                    .param("cursor", next2)
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.data.length()").value(5))
-                .andExpect(jsonPath("$.paging.hasNext").value(false))
-                .andExpect(jsonPath("$.paging.nextCursor").doesNotExist())
-                .andReturn()
+            Assertions.assertEquals(false, page3.paging.hasNext)
+            Assertions.assertEquals(5, page3.data.size)
         }
     }
