@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/courses")
-class CourseController (
-    private val courseService: CourseService
+class CourseController(
+    private val courseService: CourseService,
 ) {
     @GetMapping
     fun search(
@@ -20,15 +20,16 @@ class CourseController (
         @RequestParam semester: String,
         @RequestParam(name = "query", required = false) keyword: String?,
         @RequestParam(name = "size", defaultValue = "20") limit: Int,
-        @RequestParam(name = "cursor", required = false) nextId: Long?
+        @RequestParam(name = "cursor", required = false) nextId: Long?,
     ): ResponseEntity<SearchCourseResponse> {
-        val request = SearchCourseRequest(
-            year = year,
-            semester = semester,
-            keyword = keyword,
-            limit = limit,
-            nextId = nextId
-        )
+        val request =
+            SearchCourseRequest(
+                year = year,
+                semester = semester,
+                keyword = keyword,
+                limit = limit,
+                nextId = nextId,
+            )
         return ResponseEntity.ok(courseService.search(request))
     }
 }

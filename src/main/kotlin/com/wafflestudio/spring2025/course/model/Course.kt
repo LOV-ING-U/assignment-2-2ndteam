@@ -20,5 +20,5 @@ data class Course(
     var subtitle: String, // 부제
     var credit: Int, // 학점
     var professor: String, // 주담당교수
-    var room: String // 강의실(동-호)(#연건, *평창)
+    var room: String, // 강의실(동-호)(#연건, *평창)
 )

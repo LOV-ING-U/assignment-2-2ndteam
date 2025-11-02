@@ -4,5 +4,5 @@ data class CourseTimeDto(
     val weekday: Int,
     val startMin: Int,
     val endMin: Int,
-    val location: String?
+    val location: String?,
 )

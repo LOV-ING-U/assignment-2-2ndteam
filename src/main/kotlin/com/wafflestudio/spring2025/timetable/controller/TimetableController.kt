@@ -26,12 +26,12 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/timetables")
 class TimetableController(
     private val timetableService: TimetableService,
-    private val timetableCourseService: TimetableCourseService
+    private val timetableCourseService: TimetableCourseService,
 ) {
     @GetMapping("/{id}")
     fun get(
         @PathVariable id: Long,
-        @LoggedInUser user: User
+        @LoggedInUser user: User,
     ): ResponseEntity<TimetableDetailDto> {
         val dto = timetableCourseService.getTimetableDetail(id, user)
         return ResponseEntity.ok(dto)
@@ -92,11 +92,12 @@ class TimetableController(
         @RequestBody createRequest: CreateTimetableCourseRequest,
         @LoggedInUser user: User,
     ): ResponseEntity<CreateTimetableCourseResponse> {
-        val timetableCourse = timetableCourseService.create(
-            timetableId = id,
-            courseId = createRequest.courseId,
-            user = user,
-        )
+        val timetableCourse =
+            timetableCourseService.create(
+                timetableId = id,
+                courseId = createRequest.courseId,
+                user = user,
+            )
         return ResponseEntity.ok(timetableCourse)
     }
 
@@ -113,5 +114,4 @@ class TimetableController(
         )
         return ResponseEntity.noContent().build()
     }
-
 }

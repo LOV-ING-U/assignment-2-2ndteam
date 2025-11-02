@@ -1,37 +1,55 @@
 package com.wafflestudio.spring2025.course.extract.service
 
+import com.wafflestudio.spring2025.course.extract.dto.CourseSyncResultDto
 import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
 import com.wafflestudio.spring2025.course.model.Course
+import org.apache.poi.hssf.usermodel.HSSFWorkbook
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Sheet
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.InputStream
-import org.apache.poi.hssf.usermodel.HSSFWorkbook
-import org.apache.poi.ss.usermodel.Sheet
-import org.apache.poi.ss.usermodel.Row
-import org.springframework.jdbc.core.JdbcTemplate
-import com.wafflestudio.spring2025.course.extract.dto.CourseSyncResultDto
 
 @Service
 class CourseExtractService(
     private val courseExtractRepository: CourseExtractRepository,
     private val courseTimeExtractService: CourseTimeExtractService,
     private val sugangFetchService: SugangFetchService,
-    private val jdbcTemplate: JdbcTemplate
-){
-    private val keys = listOf("교과구분", "개설대학", "개설학과", "이수과정", "학년", "교과목번호",
-        "강좌번호", "교과목명", "부제명", "학점", "강의", "실습", "수업교시", "수업형태", "강의실",
-        "주담당교수", "정원", "강의언어")
+    private val jdbcTemplate: JdbcTemplate,
+) {
+    private val keys =
+        listOf(
+            "교과구분",
+            "개설대학",
+            "개설학과",
+            "이수과정",
+            "학년",
+            "교과목번호",
+            "강좌번호",
+            "교과목명",
+            "부제명",
+            "학점",
+            "강의",
+            "실습",
+            "수업교시",
+            "수업형태",
+            "강의실",
+            "주담당교수",
+            "정원",
+            "강의언어",
+        )
 
     @Transactional
     fun readInputXlsAndPutInDB(
         year: Int,
         semester: String,
-        inputStream: InputStream
+        inputStream: InputStream,
     ): Int {
         HSSFWorkbook(inputStream).use { hssfWorkbook ->
             val sheet: Sheet = hssfWorkbook.getSheetAt(0)
             val headerRow = sheet.getRow(2)
-            val headerColNameAndIdxMap = headerRow.associate{ it.toString() to it.columnIndex }
+            val headerColNameAndIdxMap = headerRow.associate { it.toString() to it.columnIndex }
 
             val get: (Row, String) -> String = { row, key ->
                 val idx = headerColNameAndIdxMap.entries.firstOrNull { it.key.contains(key) }?.value
@@ -48,7 +66,7 @@ class CourseExtractService(
             var inserted = 0
             val seen = mutableSetOf<Pair<String, String>>()
 
-            for(n in 3..sheet.lastRowNum){
+            for (n in 3..sheet.lastRowNum) {
                 val row = sheet.getRow(n) ?: continue
 
                 val category = get(row, "교과구분")
@@ -65,7 +83,7 @@ class CourseExtractService(
                 val room = get(row, "강의실(동-호)(#연건, *평창)")
 
                 val key = courseNumber to classNumber
-                if(!seen.add(key)) continue
+                if (!seen.add(key)) continue
 
                 courseExtractRepository.save(
                     Course(
@@ -83,8 +101,8 @@ class CourseExtractService(
                         subtitle = subName,
                         credit = credit,
                         professor = professor,
-                        room = room
-                    )
+                        room = room,
+                    ),
                 )
 
                 inserted++
@@ -97,30 +115,38 @@ class CourseExtractService(
     @Transactional
     fun syncFromSugang(
         year: Int,
-        semCode: String
+        semCode: String,
     ): CourseSyncResultDto {
         val bytes = sugangFetchService.fetchXls(year, semCode)
 
-        jdbcTemplate.update("DELETE FROM course_time WHERE course_id IN (SELECT id FROM courses WHERE year=? AND semester=?)",
-            year, "FALL")
+        jdbcTemplate.update(
+            "DELETE FROM course_time WHERE course_id IN (SELECT id FROM courses WHERE year=? AND semester=?)",
+            year,
+            "FALL",
+        )
 
-        jdbcTemplate.update("DELETE FROM courses WHERE year=? AND semester=?",
-            year, "FALL")
+        jdbcTemplate.update(
+            "DELETE FROM courses WHERE year=? AND semester=?",
+            year,
+            "FALL",
+        )
 
-        val insertedCourses = bytes.inputStream().use {
-            readInputXlsAndPutInDB(year, "FALL", it)
-        }
+        val insertedCourses =
+            bytes.inputStream().use {
+                readInputXlsAndPutInDB(year, "FALL", it)
+            }
 
-        val insertedCourseTimes = bytes.inputStream().use {
-            courseTimeExtractService.importTimesFromXls(year, "FALL", it)
-        }
+        val insertedCourseTimes =
+            bytes.inputStream().use {
+                courseTimeExtractService.importTimesFromXls(year, "FALL", it)
+            }
 
         return CourseSyncResultDto(
             year = year,
             semester = "FALL",
             fetchedBytes = bytes.size,
             insertedCourses = insertedCourses,
-            insertedCourseTimes = insertedCourseTimes
+            insertedCourseTimes = insertedCourseTimes,
         )
     }
 }

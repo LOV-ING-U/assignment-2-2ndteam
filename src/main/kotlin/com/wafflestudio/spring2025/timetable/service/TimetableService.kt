@@ -101,11 +101,11 @@ class TimetableService(
     @Transactional(readOnly = true)
     fun detail(
         timetableId: Long,
-        user: User
+        user: User,
     ): TimetableDto {
         val timetable = timetableRepository.findByIdOrNull(timetableId) ?: throw TimetableNotFoundException()
 
-        if(timetable.userId != user.id) {
+        if (timetable.userId != user.id) {
             throw TimetableUpdateForbiddenException()
         }
 

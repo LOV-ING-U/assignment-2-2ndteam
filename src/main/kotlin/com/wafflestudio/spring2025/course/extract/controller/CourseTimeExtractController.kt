@@ -7,26 +7,26 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
-import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.bind.annotation.RestController
-
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/course/extract")
-class CourseTimeExtractController (
-    private val courseTimeExtractService: CourseTimeExtractService
-){
+class CourseTimeExtractController(
+    private val courseTimeExtractService: CourseTimeExtractService,
+) {
     @PostMapping("/times")
     fun putXlsTimeInDB(
         @RequestParam year: Int,
         @RequestParam semester: String,
-        @RequestPart file: MultipartFile
+        @RequestPart file: MultipartFile,
     ): ResponseEntity<CourseTimeExtractDto> {
-        val inserted = courseTimeExtractService.importTimesFromXls(
-            year = year,
-            semester = semester,
-            inputStream = file.inputStream
-        )
+        val inserted =
+            courseTimeExtractService.importTimesFromXls(
+                year = year,
+                semester = semester,
+                inputStream = file.inputStream,
+            )
         return ResponseEntity.ok(CourseTimeExtractDto(inserted))
     }
 }
