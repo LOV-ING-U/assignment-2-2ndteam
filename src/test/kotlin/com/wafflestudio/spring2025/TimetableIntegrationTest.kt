@@ -23,7 +23,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import com.wafflestudio.spring2025.course.model.Course
 import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseRequest
-import com.wafflestudio.spring2025.timetablecourse.dto.DeleteTimetableCourseRequest
 import org.hamcrest.Matchers.hasItems
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeAll
@@ -348,13 +347,12 @@ class TimetableIntegrationTest
             val timetable = dataGenerator.generateTimetable(user = user)
             val course = dataGenerator.generateCourse()
         
-            val request = mapOf(
-                "timetableId" to timetable.id,
-                "courseId" to course.id
+            val request = CreateTimetableCourseRequest(
+                courseId = course.id!!,
             )
 
             mvc.perform(
-                post("/api/v1/timetable-courses")
+                post("/api/v1/timetables/${timetable.id!!}/courses")
                     .header("Authorization", "Bearer $token")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(request))
@@ -376,24 +374,22 @@ class TimetableIntegrationTest
             val course2 = dataGenerator.generateCourse(weekday = 1, startMin = 630, endMin = 690)
 
             val request1 = CreateTimetableCourseRequest(
-                timetableId = timetable.id!!,
                 courseId = course1.id!!,
             )
 
             val request2 = CreateTimetableCourseRequest(
-                timetableId = timetable.id!!,
                 courseId = course2.id!!,
             )
 
             mvc.perform(
-                post("/api/v1/timetable-courses")
+                post("/api/v1/timetables/${timetable.id!!}/courses")
                     .header("Authorization", "Bearer $token")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(request1))
             ).andExpect(status().isOk)
 
             mvc.perform(
-                post("/api/v1/timetable-courses")
+                post("/api/v1/timetables/${timetable.id!!}/courses")
                     .header("Authorization", "Bearer $token")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(request2))
@@ -410,12 +406,11 @@ class TimetableIntegrationTest
             val course = dataGenerator.generateCourse()
 
             val request = CreateTimetableCourseRequest(
-                timetableId = timetable.id!!,
                 courseId = course.id!!,
             )
 
             mvc.perform(
-                post("/api/v1/timetable-courses")
+                post("/api/v1/timetables/${timetable.id!!}/courses")
                     .header("Authorization", "Bearer $token")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(request))
@@ -431,18 +426,12 @@ class TimetableIntegrationTest
             val course = dataGenerator.generateCourse()
 
             val addRequest = CreateTimetableCourseRequest(
-                timetableId = timetable.id!!,
-                courseId = course.id!!,
-            )
-
-            val deleteRequest = DeleteTimetableCourseRequest(
-                timetableId = timetable.id!!,
                 courseId = course.id!!,
             )
 
             // 강의 추가
             mvc.perform(
-                post("/api/v1/timetable-courses")
+                post("/api/v1/timetables/${timetable.id!!}/courses")
                     .header("Authorization", "Bearer $token")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(addRequest))
@@ -450,10 +439,9 @@ class TimetableIntegrationTest
 
             // 삭제 요청
             mvc.perform(
-                delete("/api/v1/timetable-courses")
+                delete("/api/v1/timetables/${timetable.id!!}/courses/${course.id!!}")
                     .header("Authorization", "Bearer $token")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(deleteRequest))
             ).andExpect(status().isNoContent)
         }
 
@@ -467,16 +455,10 @@ class TimetableIntegrationTest
             val course = dataGenerator.generateCourse()
             dataGenerator.addCourseToTimetable(timetable, course)
 
-            val request = DeleteTimetableCourseRequest(
-                timetableId = timetable.id!!,
-                courseId = course.id!!,
-            )
-
             mvc.perform(
-                delete("/api/v1/timetable-courses")
+                delete("/api/v1/timetables/${timetable.id!!}/courses/${course.id!!}")
                     .header("Authorization", "Bearer $token")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(request))
             ).andExpect(status().isForbidden)
         }
 
