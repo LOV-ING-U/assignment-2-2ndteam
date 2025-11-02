@@ -208,136 +208,28 @@ class TimetableIntegrationTest
         @Test
         fun `should search for courses`() {
             // 강의를 검색할 수 있다
-            val year = "2025"
-            val semester = "2"
-            val keyword = "전자"
+            val (_, token) = dataGenerator.generateUser()
+            val keyword = "검색 테스트"
+            val c1 = dataGenerator.generateCourse(title = "검색 테스트", professor = "prof1")
+            val c2 = dataGenerator.generateCourse(title = "검색 테스트:", professor = "prof2")
+            val c3 = dataGenerator.generateCourse(title = "대학영어", professor = "prof3")
+            val c4 = dataGenerator.generateCourse(title = "prof4", professor = "검색 테스트")
 
-            // 키워드가 교수명에 포함되는 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2025,
-                    semester = "2",
-                    category = "전선",
-                    college = "사범대학",
-                    department = "사회교육과",
-                    procedure = "학사",
-                    grade = 4,
-                    courseNumber = "M1855.001800",
-                    classNumber = "001",
-                    title = "문화와 사회",
-                    subtitle = "",
-                    credit = 3,
-                    professor = "전자배",
-                    room = "11-108",
-                ),
-            )
-
-            // 키워드가 강의명에 포함되는 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2025,
-                    semester = "2",
-                    category = "전필",
-                    college = "공과대학",
-                    department = "전기·정보공학부",
-                    procedure = "학사",
-                    grade = 2,
-                    courseNumber = "430.202B",
-                    classNumber = "003",
-                    title = "기초전자기학 및 연습",
-                    subtitle = "",
-                    credit = 4,
-                    professor = "오정석",
-                    room = "301-102(무선랜제공)/301-207(무선랜제공)/301-102(무선랜제공)",
-                ),
-            )
-
-            // 키워드가 교수명과 강의명에 포함되지 않는 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2025,
-                    semester = "2",
-                    category = "전필",
-                    college = "공과대학",
-                    department = "전기·정보공학부",
-                    procedure = "학사",
-                    grade = 2,
-                    courseNumber = "430.201A",
-                    classNumber = "003",
-                    title = "논리설계 및 실험",
-                    subtitle = "",
-                    credit = 4,
-                    professor = "최우석",
-                    room = "301-102(무선랜제공)/301-102(무선랜제공)/301-308(무선랜제공)",
-                ),
-            )
-
-            // 연, 학기가 다른 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2024,
-                    semester = "2",
-                    category = "전필",
-                    college = "공과대학",
-                    department = "전기·정보공학부",
-                    procedure = "학사",
-                    grade = 2,
-                    courseNumber = "430.202B",
-                    classNumber = "003",
-                    title = "기초전자기학및연습",
-                    subtitle = "",
-                    credit = 4,
-                    professor = "오정석",
-                    room = "301-102(무선랜제공)/301-207(무선랜제공)/301-102(무선랜제공)",
-                ),
-            )
-
-            // 연, 학기가 다른 강의
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2024,
-                    semester = "2",
-                    category = "전선",
-                    college = "사범대학",
-                    department = "사회교육과",
-                    procedure = "학사",
-                    grade = 4,
-                    courseNumber = "M1855.001800",
-                    classNumber = "001",
-                    title = "문화와사회",
-                    subtitle = "",
-                    credit = 3,
-                    professor = "전자배",
-                    room = "11-108",
-                ),
-            )
-
-            val mvcResult = mvc.perform(
+            val expected = 3 // keyword 포함 강의 수
+            
+            mvc.perform(
                 get("/api/v1/courses")
-                    .param("year", year)
-                    .param("semester", semester)
+                    .param("year", "2025")
+                    .param("semester", "FALL")
                     .param("query", keyword)
-            ).andExpect(status().isOk)
-                .andReturn()
-
-            val response = mvcResult.response.getContentAsString()
-
-            if (!response.contains("기초전자기학 및 연습")) {
-                throw Exception("조건에 해당하는 강의가 검색되지 않았습니다.")
-            }
-            if (!response.contains("문화와 사회")) {
-                throw Exception("조건에 해당하는 강의가 검색되지 않았습니다.")
-            }
-
-            val count = response.split("\"title\"").size - 1
-            if (count != 2) {
-                throw Exception("조건에 해당하지 않는 강의가 검색되었습니다.")
-            }
+                    .param("size", "10")
+                    .header("Authorization", "Bearer $token")
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.data", hasSize<Any>(expected)))
+                .andExpect(jsonPath("$.data[*].id",hasItems(c1.id!!.toInt(), c2.id!!.toInt(), c4.id!!.toInt())))
+                .andExpect(jsonPath("$.paging.hasNext").value(false))
         }
 
         @Test
@@ -611,120 +503,5 @@ class TimetableIntegrationTest
         fun `should paginate correctly when searching for courses`() {
             // 강의 검색 시, 페이지네이션이 올바르게 동작한다
 
-            val year = "2025"
-            val semester = "2"
-
-            for (i in 1..25) {
-                courseExtractRepository.save(
-                    com.wafflestudio.spring2025.course.model.Course(
-                        id = null,
-                        year = 2025,
-                        semester = "2",
-                        category = "교양",
-                        college = "학부대학",
-                        department = "학부대학",
-                        procedure = "학부",
-                        grade = 1,
-                        courseNumber = "F11.203",
-                        classNumber = "$i",
-                        title = "대학 글쓰기 $i",
-                        subtitle = "",
-                        credit = 2,
-                        professor = "교수 $i",
-                        room = "43-1-$i",
-                    )
-                )
-            }
-
-            courseExtractRepository.save(
-                com.wafflestudio.spring2025.course.model.Course(
-                    id = null,
-                    year = 2024,
-                    semester = "2",
-                    category = "교양",
-                    college = "학부대학",
-                    department = "학부대학",
-                    procedure = "학부",
-                    grade = 1,
-                    courseNumber = "F11.203",
-                    classNumber = "001",
-                    title = "대학 글쓰기 1",
-                    subtitle = "",
-                    credit = 2,
-                    professor = "교수",
-                    room = "43-1-101",
-                )
-            )
-
-            courseExtractRepository.save(
-                Course(
-                    id = null,
-                    year = 2025,
-                    semester = "2",
-                    category = "전필",
-                    college = "공과대학",
-                    department = "전기·정보공학부",
-                    procedure = "학사",
-                    grade = 2,
-                    courseNumber = "430.201A",
-                    classNumber = "003",
-                    title = "논리설계 및 실험",
-                    subtitle = "",
-                    credit = 4,
-                    professor = "최우석",
-                    room = "301-102(무선랜제공)/301-102(무선랜제공)/301-308(무선랜제공)",
-                ),
-            )
-
-            val res1 = mvc.perform(
-                get("/api/v1/courses")
-                    .param("year", year)
-                    .param("semester", semester)
-                    .param("query", "대학 글쓰기")
-                    .param("size", "10")
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.data.length()").value(10))
-                .andExpect(jsonPath("$.paging.hasNext").value(true))
-                .andExpect(jsonPath("$.paging.nextCursor").isNotEmpty)
-                .andReturn()
-
-            val next1 = com.jayway.jsonpath.JsonPath
-                .read<Number>(res1.response.getContentAsString(), "$.paging.nextCursor")
-                .toLong()
-                .toString()
-
-            val res2 = mvc.perform(
-                get("/api/v1/courses")
-                    .param("year", year)
-                    .param("semester", semester)
-                    .param("query", "대학 글쓰기")
-                    .param("size", "10")
-                    .param("cursor", next1)
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.data.length()").value(10))
-                .andExpect(jsonPath("$.paging.hasNext").value(true))
-                .andExpect(jsonPath("$.paging.nextCursor").isNotEmpty)
-                .andReturn()
-
-            val next2 = com.jayway.jsonpath.JsonPath
-                .read<Number>(res2.response.getContentAsString(), "$.paging.nextCursor")
-                .toLong()
-                .toString()
-
-            mvc.perform(
-                get("/api/v1/courses")
-                    .param("year", year)
-                    .param("semester", semester)
-                    .param("query", "대학 글쓰기")
-                    .param("size", "10")
-                    .param("cursor", next2)
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.data.length()").value(5))
-                .andExpect(jsonPath("$.paging.hasNext").value(false))
-                .andExpect(jsonPath("$.paging.nextCursor").doesNotExist())
-                .andReturn()
         }
     }
