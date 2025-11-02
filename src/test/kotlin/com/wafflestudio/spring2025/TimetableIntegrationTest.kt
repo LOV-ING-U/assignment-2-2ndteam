@@ -3,6 +3,7 @@ package com.wafflestudio.spring2025
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.wafflestudio.spring2025.course.extract.repository.CourseExtractRepository
 import com.wafflestudio.spring2025.course.extract.repository.CourseTimeExtractRepository
+import com.wafflestudio.spring2025.course.dto.course.SearchCourseResponse
 import com.wafflestudio.spring2025.helper.DataGenerator
 import com.wafflestudio.spring2025.timetable.dto.CreateTimetableRequest
 import com.wafflestudio.spring2025.timetable.dto.UpdateTimetableRequest
@@ -21,13 +22,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delet
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import com.wafflestudio.spring2025.course.model.Course
 import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseRequest
 import com.wafflestudio.spring2025.timetablecourse.dto.DeleteTimetableCourseRequest
 import org.hamcrest.Matchers.hasItems
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.Assertions
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 
 @SpringBootTest
@@ -502,6 +503,79 @@ class TimetableIntegrationTest
         @Test
         fun `should paginate correctly when searching for courses`() {
             // 강의 검색 시, 페이지네이션이 올바르게 동작한다
+            val (_, token) = dataGenerator.generateUser()
+            val keyword = "pagination test course"
+            val pageSize = 10
 
+            repeat(25) {
+                dataGenerator.generateCourse(title = "$keyword #$it", professor = "prof$it")
+            }
+
+            val page1 =
+                mvc.perform(
+                    get("/api/v1/courses")
+                        .param("year", "2025")
+                        .param("semester", "FALL")
+                        .param("query", keyword)
+                        .param("size", pageSize.toString())
+                        .header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                    .andExpect(status().isOk)
+                    .andReturn()
+                    .response
+                    .getContentAsString(Charsets.UTF_8)
+                    .let {
+                        mapper.readValue(it, SearchCourseResponse::class.java)
+                    }
+
+            Assertions.assertTrue(page1.paging.hasNext)
+            Assertions.assertTrue(page1.paging.nextCursor != null)
+            Assertions.assertEquals(pageSize, page1.data.size)
+
+            val page2 =
+                mvc.perform(
+                    get("/api/v1/courses")
+                        .param("year", "2025")
+                        .param("semester", "FALL")
+                        .param("query", keyword)
+                        .param("size", pageSize.toString())
+                        .param("cursor", page1.paging.nextCursor.toString())
+                        .header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                    .andExpect(status().isOk)
+                    .andReturn()
+                    .response
+                    .getContentAsString(Charsets.UTF_8)
+                    .let {
+                        mapper.readValue(it, SearchCourseResponse::class.java)
+                    }
+
+            Assertions.assertTrue(page2.paging.hasNext)
+            Assertions.assertTrue(page2.paging.nextCursor != null)
+            Assertions.assertEquals(pageSize, page2.data.size)
+
+            val page3 =
+                mvc.perform(
+                    get("/api/v1/courses")
+                        .param("year", "2025")
+                        .param("semester", "FALL")
+                        .param("query", keyword)
+                        .param("size", pageSize.toString())
+                        .param("cursor", page2.paging.nextCursor.toString())
+                        .header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                    .andExpect(status().isOk)
+                    .andReturn()
+                    .response
+                    .getContentAsString(Charsets.UTF_8)
+                    .let {
+                        mapper.readValue(it, SearchCourseResponse::class.java)
+                    }
+
+            Assertions.assertEquals(false, page3.paging.hasNext)
+            Assertions.assertEquals(5, page3.data.size)
         }
     }
