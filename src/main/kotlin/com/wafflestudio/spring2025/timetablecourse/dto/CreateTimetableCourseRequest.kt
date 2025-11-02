@@ -7,6 +7,5 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("timetable_course")
 data class CreateTimetableCourseRequest(
     @Id val id: Long? = null,
-    @Column("timetable_id") val timetableId: Long,
     @Column("course_id") val courseId: Long,
 )

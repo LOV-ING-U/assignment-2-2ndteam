@@ -12,7 +12,6 @@ import com.wafflestudio.spring2025.user.model.User
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 
 @Service
 class TimetableService(
@@ -93,7 +92,7 @@ class TimetableService(
             throw TimetableUpdateForbiddenException()
         }
 
-        // ### for deleting all information about timetable
+        // ### for deleting all information about timetable -> this is done by CASCADE in SQL
         // TODO : lectureRepository.deleteByTimetableId(timetableId)
 
         timetableRepository.delete(timetable)
