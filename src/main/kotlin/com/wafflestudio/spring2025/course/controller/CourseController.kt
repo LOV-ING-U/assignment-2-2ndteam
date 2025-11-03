@@ -4,7 +4,8 @@ import com.wafflestudio.spring2025.course.dto.course.SearchCourseRequest
 import com.wafflestudio.spring2025.course.dto.course.SearchCourseResponse
 import com.wafflestudio.spring2025.course.service.CourseService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -14,8 +15,9 @@ import org.springframework.web.bind.annotation.RestController
 class CourseController(
     private val courseService: CourseService,
 ) {
-    @GetMapping
+    @PostMapping
     fun search(
+        @RequestBody req: SearchCourseRequest,
         @RequestParam year: Int,
         @RequestParam semester: String,
         @RequestParam(name = "query", required = false) keyword: String?,
