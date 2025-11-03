@@ -34,7 +34,6 @@ class JwtAuthenticationFilter(
         filterChain.doFilter(request, response)
     }
 
-
     private fun resolveToken(request: HttpServletRequest): String? {
         val bearerToken = request.getHeader("Authorization")
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
