@@ -9,7 +9,6 @@ import com.wafflestudio.spring2025.timetable.dto.CreateTimetableRequest
 import com.wafflestudio.spring2025.timetable.dto.UpdateTimetableRequest
 import com.wafflestudio.spring2025.timetable.model.Semester
 import com.wafflestudio.spring2025.timetable.repository.TimetableRepository
-import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseRequest
 import org.hamcrest.Matchers.hasItems
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.Assertions
@@ -240,17 +239,11 @@ class TimetableIntegrationTest
             val timetable = dataGenerator.generateTimetable(user = user)
             val course = dataGenerator.generateCourse()
 
-            val request =
-                CreateTimetableCourseRequest(
-                    courseId = course.id!!,
-                )
-
             mvc
                 .perform(
-                    post("/api/v1/timetables/${timetable.id!!}/courses")
+                    post("/api/v1/timetables/${timetable.id!!}/courses/${course.id!!}")
                         .header("Authorization", "Bearer $token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request)),
+                        .contentType(MediaType.APPLICATION_JSON),
                 ).andExpect(status().isOk)
                 .andExpect(jsonPath("$.timetableId").value(timetable.id!!))
                 .andExpect(jsonPath("$.course.id").value(course.id!!))
@@ -267,30 +260,18 @@ class TimetableIntegrationTest
             // 월요일 10:30~11:30
             val course2 = dataGenerator.generateCourse(weekday = 1, startMin = 630, endMin = 690)
 
-            val request1 =
-                CreateTimetableCourseRequest(
-                    courseId = course1.id!!,
-                )
-
-            val request2 =
-                CreateTimetableCourseRequest(
-                    courseId = course2.id!!,
-                )
-
             mvc
                 .perform(
-                    post("/api/v1/timetables/${timetable.id!!}/courses")
+                    post("/api/v1/timetables/${timetable.id!!}/courses/${course1.id!!}")
                         .header("Authorization", "Bearer $token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request1)),
+                        .contentType(MediaType.APPLICATION_JSON),
                 ).andExpect(status().isOk)
 
             mvc
                 .perform(
-                    post("/api/v1/timetables/${timetable.id!!}/courses")
+                    post("/api/v1/timetables/${timetable.id!!}/courses//${course2.id!!}")
                         .header("Authorization", "Bearer $token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request2)),
+                        .contentType(MediaType.APPLICATION_JSON),
                 ).andExpect(status().isConflict)
         }
 
@@ -303,17 +284,11 @@ class TimetableIntegrationTest
             val timetable = dataGenerator.generateTimetable(user = owner)
             val course = dataGenerator.generateCourse()
 
-            val request =
-                CreateTimetableCourseRequest(
-                    courseId = course.id!!,
-                )
-
             mvc
                 .perform(
-                    post("/api/v1/timetables/${timetable.id!!}/courses")
+                    post("/api/v1/timetables/${timetable.id!!}/courses//${course.id!!}")
                         .header("Authorization", "Bearer $token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request)),
+                        .contentType(MediaType.APPLICATION_JSON),
                 ).andExpect(status().isForbidden)
         }
 
@@ -325,18 +300,12 @@ class TimetableIntegrationTest
             val timetable = dataGenerator.generateTimetable(user = user)
             val course = dataGenerator.generateCourse()
 
-            val addRequest =
-                CreateTimetableCourseRequest(
-                    courseId = course.id!!,
-                )
-
             // 강의 추가
             mvc
                 .perform(
-                    post("/api/v1/timetables/${timetable.id!!}/courses")
+                    post("/api/v1/timetables/${timetable.id!!}/courses//${course.id!!}")
                         .header("Authorization", "Bearer $token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(addRequest)),
+                        .contentType(MediaType.APPLICATION_JSON),
                 ).andExpect(status().isOk)
 
             // 삭제 요청
@@ -488,18 +457,14 @@ class TimetableIntegrationTest
             dataGenerator.addCourseToTimetable(timetable, course2)
             dataGenerator.addCourseToTimetable(timetable, course3)
 
-            val id1 = requireNotNull(course1.id) { "not null" }.toInt()
-            val id2 = requireNotNull(course2.id) { "not null" }.toInt()
-            val id3 = requireNotNull(course3.id) { "not null" }.toInt()
-
             mvc
                 .perform(
-                    get("/api/v1/timetables/{id}", timetable.id)
+                    get("/api/v1/timetables/${timetable.id!!}")
                         .header("Authorization", "Bearer $token")
                         .contentType(MediaType.APPLICATION_JSON),
                 ).andExpect(status().isOk)
                 .andExpect(jsonPath("$.courses", hasSize<Any>(3)))
-                .andExpect(jsonPath("$.courses[*].id", hasItems(id1, id2, id3)))
+                .andExpect(jsonPath("$.courses[*].id", hasItems(course1.id!!.toInt(), course2.id!!.toInt(), course3.id!!.toInt())))
                 .andExpect(jsonPath("$.totalCredit").value(6))
         }
 
