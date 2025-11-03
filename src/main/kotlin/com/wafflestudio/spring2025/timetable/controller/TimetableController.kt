@@ -6,7 +6,6 @@ import com.wafflestudio.spring2025.timetable.dto.ListTimetableResponse
 import com.wafflestudio.spring2025.timetable.dto.UpdateTimetableRequest
 import com.wafflestudio.spring2025.timetable.dto.core.TimetableDto
 import com.wafflestudio.spring2025.timetable.service.TimetableService
-import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseRequest
 import com.wafflestudio.spring2025.timetablecourse.dto.CreateTimetableCourseResponse
 import com.wafflestudio.spring2025.timetablecourse.dto.core.TimetableDetailDto
 import com.wafflestudio.spring2025.timetablecourse.service.TimetableCourseService
@@ -86,16 +85,16 @@ class TimetableController(
 
     // TimetableCourse 관련 API 통합
 
-    @PostMapping("/{id}/courses")
+    @PostMapping("/{id}/courses/{courseId}")
     fun addCourse(
         @PathVariable id: Long,
-        @RequestBody createRequest: CreateTimetableCourseRequest,
+        @PathVariable courseId: Long,
         @LoggedInUser user: User,
     ): ResponseEntity<CreateTimetableCourseResponse> {
         val timetableCourse =
             timetableCourseService.create(
                 timetableId = id,
-                courseId = createRequest.courseId,
+                courseId = courseId,
                 user = user,
             )
         return ResponseEntity.ok(timetableCourse)
