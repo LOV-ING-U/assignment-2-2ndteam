@@ -128,7 +128,7 @@ class DataGenerator(
                     college = "공과대학",
                     department = "컴퓨터공학부",
                     grade = 3,
-                    courseNumber = "CS${Random.nextInt(1000)}",
+                    courseNumber = "CS${System.nanoTime()}",
                     classNumber = "00${Random.nextInt(9)}",
                     procedure = "학부",
                     subtitle = "",
